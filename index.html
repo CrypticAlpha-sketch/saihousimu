@@ -8,68 +8,69 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="さいほう工房">
-<meta name="theme-color" content="#12182a">
+<meta name="theme-color" content="#232030">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-180.png">
 <style>
 :root{
-  --ai:#12182a;        /* 藍 */
-  --ai2:#1a2340;       /* 藍・淡 */
-  --panel:#202a4d;
-  --line:#31406e;
-  --linen:#efe6d2;     /* 麻布 */
-  --linen-d:#d9cdb2;
-  --ink:#2a2318;       /* 布上の墨 */
-  --gold:#e2b34a;      /* 縫糸金 */
-  --aka:#e0524e;       /* 朱 */
-  --ki:#eecf5a;        /* 黄 */
-  --wakaba:#4ecb8d;    /* 若葉 */
-  --tx:#e8ecf7;
-  --tx-dim:#9aa6c8;
+  --ai:#232030;        /* 薄暮 */
+  --ai2:#2b2839;       /* 薄暮・淡 */
+  --panel:#322e44;
+  --line:#4a4560;
+  --linen:#f8f0e8;     /* 生成り */
+  --linen-d:#e8dcd2;
+  --ink:#4c3f50;       /* すみれ墨 */
+  --gold:#f0b3c7;      /* 縫糸・桃 */
+  --aka:#f2a3b3;       /* 珊瑚 */
+  --ki:#f5dfa6;        /* 蜂蜜 */
+  --wakaba:#a8e2c0;    /* ミント */
+  --tx:#eae6f4;
+  --tx-dim:#a49fbe;
   --num:"Avenir Next Condensed","DIN Alternate",ui-monospace,"SF Mono",monospace;
 }
 /* ---- ライトテーマ（生成り×藍） ---- */
 [data-theme=light]{
-  --ai:#f2ecdd;
-  --ai2:#e9e1cb;
-  --panel:#fbf7ec;
-  --line:#d3c7a6;
-  --linen:#fffdf6;
-  --linen-d:#e8dfc8;
-  --ink:#2a2318;
-  --gold:#a97e22;
-  --aka:#c43f3b;
-  --ki:#b8940e;
-  --wakaba:#1c8f5a;
-  --tx:#2b2517;
-  --tx-dim:#7c7157;
+  --ai:#faf3f5;
+  --ai2:#f3e8ee;
+  --panel:#fffbfd;
+  --line:#e8d4de;
+  --linen:#fffdf8;
+  --linen-d:#efe2da;
+  --ink:#4c3a46;
+  --gold:#d4849f;
+  --aka:#e08a96;
+  --ki:#d9ae4e;
+  --wakaba:#44ae82;
+  --tx:#463a48;
+  --tx-dim:#95859d;
 }
-[data-theme=light] .tabbar{background:rgba(250,246,235,.96);border-top-color:var(--line)}
-[data-theme=light] #cloth{background:repeating-linear-gradient(45deg,#e4dbc2 0 12px,#ded4b8 12px 24px)}
-[data-theme=light] .cell{box-shadow:inset 0 0 0 3px rgba(255,255,255,.6),0 2px 5px rgba(90,70,40,.25)}
-[data-theme=light] .cell.c-near{box-shadow:inset 0 0 0 3px #d9b520,0 2px 5px rgba(90,70,40,.25)}
-[data-theme=light] .cell.c-zero{box-shadow:inset 0 0 0 3px var(--wakaba),0 2px 6px rgba(90,70,40,.25)}
-[data-theme=light] .cell.c-over{box-shadow:inset 0 0 0 3px var(--aka),0 2px 5px rgba(90,70,40,.25)}
-[data-theme=light] .btn{color:#fff;background:#a97e22}
+[data-theme=light] .tabbar{background:rgba(255,250,252,.97);border-top-color:var(--line)}
+[data-theme=light] .p-sticky{box-shadow:0 6px 14px -10px rgba(150,100,125,.4)}
+[data-theme=light] #cloth{background:repeating-linear-gradient(45deg,#f0dde6 0 12px,#ecd7e1 12px 24px)}
+[data-theme=light] .cell{box-shadow:inset 0 0 0 3px rgba(255,255,255,.65),0 2px 5px rgba(140,90,110,.18)}
+[data-theme=light] .cell.c-near{box-shadow:inset 0 0 0 3px #ecc95e,0 2px 5px rgba(140,90,110,.18)}
+[data-theme=light] .cell.c-zero{box-shadow:inset 0 0 0 3px #7fd4ab,0 2px 6px rgba(140,90,110,.18)}
+[data-theme=light] .cell.c-over{box-shadow:inset 0 0 0 3px #eda6b0,0 2px 5px rgba(140,90,110,.18)}
+[data-theme=light] .btn{color:#fff;background:#d4849f}
 [data-theme=light] .btn.ghost{color:var(--tx);background:var(--panel)}
-[data-theme=light] #toast{background:#fffdf4;color:var(--tx);box-shadow:0 4px 16px rgba(80,60,20,.25)}
-[data-theme=light] .pw-weak{background:#d7e6f8;color:#2a5a8e}
-[data-theme=light] .pw-normal{background:#d8ecd0;color:#2e6b28}
-[data-theme=light] .pw-strong{background:#f7e3c4;color:#8a5a12}
-[data-theme=light] .pw-max{background:#f8d4d4;color:#a02a2a}
-[data-theme=light] .pw-crit{background:#ecd6f5;color:#6e2a8a}
-[data-theme=light] .pw-rand{background:#e2e2ea;color:#4a4a5a}
-[data-theme=light] .dist.z{background:#d8ecd8;color:#1c7a48}
-[data-theme=light] .dist.n{background:#f2e8c0;color:#7a5f08}
-[data-theme=light] .dist.o{background:#f5d8d8;color:#a83030}
-[data-theme=light] .badge.warn{background:#f0e2b0;color:#7a5a10}
-[data-theme=light] .badge.sim{background:#d0ead8;color:#1c7a48}
-[data-theme=light] .badge.sup{background:#f5ddc8;color:#9a5a1c}
-[data-theme=light] .cmd.util .cmd-n{color:#3a5a9e}
-[data-theme=light] .cmd.heal .cmd-n{color:#1c7a58}
-[data-theme=light] .theme-btn{box-shadow:0 2px 8px rgba(90,70,40,.3)}
+[data-theme=light] #toast{background:#fffbfd;color:var(--tx);box-shadow:0 4px 16px rgba(150,100,125,.25)}
+[data-theme=light] .pw-weak{background:#dde9f9;color:#4a72a8}
+[data-theme=light] .pw-normal{background:#def2e1;color:#3f8a55}
+[data-theme=light] .pw-strong{background:#fae7cf;color:#a8703a}
+[data-theme=light] .pw-max{background:#fadde2;color:#c05a74}
+[data-theme=light] .pw-crit{background:#eedff8;color:#8a5ab8}
+[data-theme=light] .pw-rand{background:#eae6ee;color:#6a6478}
+[data-theme=light] .dist.z{background:#daf1de;color:#2a8a58}
+[data-theme=light] .dist.n{background:#f8edcb;color:#8a6d14}
+[data-theme=light] .dist.o{background:#f9dee3;color:#c05a6a}
+[data-theme=light] .badge.warn{background:#f6ebc6;color:#8a6a14}
+[data-theme=light] .badge.sim{background:#d8efe0;color:#2a8a58}
+[data-theme=light] .badge.sup{background:#f9e4d2;color:#a8642a}
+[data-theme=light] .cmd.util .cmd-n{color:#5a70b8}
+[data-theme=light] .cmd.heal .cmd-n{color:#2a9a70}
+[data-theme=light] .theme-btn{box-shadow:0 2px 8px rgba(140,90,110,.25)}
 [data-theme=light] .patc .patl{background:var(--panel)}
-[data-theme=light] #pw-seishin{color:#1c8f5a;border-color:#1c8f5a}
+[data-theme=light] #pw-seishin{color:#44ae82;border-color:#44ae82}
 
 
 /* ---- SVGアイコン ---- */
@@ -111,7 +112,13 @@ body,.tabbar,.item-card,.sec,.cell,#cloth,#insight,.modal-in{transition:backgrou
 html,body{margin:0;padding:0;background:var(--ai);color:var(--tx);
   font-family:-apple-system,"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
   font-size:15px;overscroll-behavior:none}
-body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+/* iOSのアドレスバー連動によるタブバー浮きを根絶: 固定シェル+内部スクロール */
+html,body{height:100%;overflow:hidden}
+body{position:fixed;inset:0;width:100%}
+#app{height:100dvh;height:100svh;display:flex;flex-direction:column}
+@supports (height:100dvh){#app{height:100dvh}}
+#stage{flex:1 1 auto;position:relative;min-height:0}
+button,input,select,textarea{touch-action:manipulation}
 button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer}
 input,select{font-family:inherit;font-size:16px;background:var(--ai2);color:var(--tx);
   border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
@@ -119,37 +126,74 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .hide{display:none!important}
 
 /* ---- 画面 ---- */
-.screen{display:none;padding:12px 14px calc(20px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
-.screen.active{display:block}
-.apph{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px;padding-top:env(safe-area-inset-top);padding-right:52px}
+.screen{display:none;position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;padding:12px 14px 28px}
+.screen>*{max-width:560px;margin-left:auto;margin-right:auto}
+.screen.active{display:block;animation:scrIn .18s ease}
+@keyframes scrIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen.active{animation:none}}
+.apph{display:flex;align-items:baseline;gap:10px;margin:2px 0 12px;padding-top:env(safe-area-inset-top);padding-right:52px}
 .apph h1{font-size:20px;margin:0}
 .apph .sub{color:var(--tx-dim);font-size:12px}
 
 /* ---- タブバー ---- */
-.tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(14,19,36,.96);
+.tabbar{flex-shrink:0;display:flex;background:rgba(30,27,40,.97);
   backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:40;
   padding-bottom:env(safe-area-inset-bottom)}
-.tabbar button{flex:1;padding:10px 0 8px;color:var(--tx-dim);font-size:11px;display:flex;flex-direction:column;gap:2px;align-items:center}
-.tabbar button .ico{font-size:18px;line-height:1}
+.tabbar button{flex:1;padding:9px 0 7px;color:var(--tx-dim);font-size:11px;display:flex;flex-direction:column;gap:3px;align-items:center;position:relative;transition:color .15s}
 .tabbar button.on{color:var(--gold)}
+.tabbar button.on::before{content:"";position:absolute;top:0;width:26px;height:3px;border-radius:0 0 3px 3px;background:var(--gold)}
+.tabbar button:active{transform:scale(.94)}
 
 /* ---- ホーム ---- */
-.item-card{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);
-  border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:border-color .15s}
-.item-card.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
-.ic-name{font-weight:700;font-size:15px}
-.ic-meta{color:var(--tx-dim);font-size:12px;margin-top:3px}
-.start-row{display:flex;gap:10px;margin-top:14px}
-.btn{flex:1;background:var(--gold);color:#241a05;font-weight:800;border-radius:12px;padding:14px;font-size:15px}
+#part-filter{position:sticky;top:calc(-12px + 0px);z-index:9;background:var(--ai);
+  margin:-4px -14px 8px;padding:8px 14px;border-bottom:1px solid transparent}
+#part-filter.scrolled{border-bottom-color:var(--line)}
+.set-h{font-size:12px;font-weight:800;color:var(--tx-dim);letter-spacing:.08em;margin:16px 2px 8px;
+  display:flex;align-items:center;gap:8px}
+.set-h::after{content:"";flex:1;height:1px;background:var(--line);opacity:.6}
+.item-card{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel);
+  border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;
+  transition:border-color .15s,transform .1s}
+.item-card:active{transform:scale(.985)}
+.item-card .ic-body{flex:1;min-width:0}
+.ic-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic-meta{color:var(--tx-dim);font-size:11.5px;margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.item-card .chev{color:var(--tx-dim);flex-shrink:0}
+.item-card .chev .svgi{width:15px;height:15px}
+.clothchip{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;flex-shrink:0}
+.cl-regen{background:rgba(80,180,230,.16);color:#6ec2ea}
+.cl-rainbow{background:linear-gradient(100deg,rgba(226,80,80,.2),rgba(226,180,70,.2),rgba(80,200,140,.2),rgba(100,140,240,.2));color:#e8c86a}
+.cl-pink{background:rgba(240,120,190,.16);color:#f08ac8}
+.cl-none{background:rgba(150,160,190,.14);color:var(--tx-dim)}
+[data-theme=light] .cl-regen{background:rgba(40,140,200,.14);color:#1e7ab0}
+[data-theme=light] .cl-rainbow{color:#946a10}
+[data-theme=light] .cl-pink{background:rgba(220,80,160,.13);color:#b0348a}
+.btn{flex:1;background:var(--gold);color:#47253a;font-weight:800;border-radius:12px;padding:14px;font-size:15px}
 .btn:disabled{opacity:.35}
+.btn{transition:transform .1s,opacity .15s}
+.btn:not(:disabled):active{transform:scale(.97)}
+.cmd{transition:transform .1s,border-color .15s,background .15s}
+.cmd:active{transform:scale(.95)}
+.cell{transition:transform .12s}
+.cell:not(.empty):active{transform:scale(.96)}
 .btn.ghost{background:var(--panel);color:var(--tx);border:1px solid var(--line)}
 .badge{font-size:10px;border-radius:4px;padding:2px 5px;margin-left:6px;font-weight:700;vertical-align:middle}
-.badge.warn{background:#5a4a17;color:var(--ki)}
-.badge.sim{background:#1c4a3a;color:var(--wakaba)}
-.badge.sup{background:#4a2a1c;color:#f0a76a}
+.badge.warn{background:#4e462e;color:var(--ki)}
+.badge.sim{background:#2e4a3c;color:var(--wakaba)}
+.badge.sup{background:#4e3a2e;color:#f5c8a3}
 
 /* ---- プレイ ヘッダ ---- */
-.p-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:env(safe-area-inset-top);padding-right:52px}
+.p-sticky{position:sticky;top:-12px;z-index:10;background:var(--ai);
+  margin:-12px -14px 0;padding:12px 14px 6px;padding-top:calc(12px + env(safe-area-inset-top));
+  border-bottom:1px solid var(--line);box-shadow:0 6px 14px -10px rgba(0,0,0,.55)}
+.p-sticky>*{max-width:560px;margin-left:auto;margin-right:auto}
+.p-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-right:52px}
+#play-main{display:flex;flex-direction:column;min-height:100%}
+.cmd-dock{position:sticky;bottom:-28px;z-index:10;margin:auto -14px 0;margin-top:auto;
+  padding:8px 14px calc(10px + 0px);background:linear-gradient(to top,var(--ai) 82%,transparent);
+  }
+.cmd-dock>*{max-width:560px;margin-left:auto;margin-right:auto}
 .p-head .l{min-width:0}
 #p-item{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p-stats{display:flex;gap:14px;margin:8px 0 6px;align-items:center}
@@ -157,7 +201,7 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .stat b{display:block;font-family:var(--num);font-size:22px;color:var(--tx);line-height:1}
 .focuswrap{flex:1}
 .focusbar{height:6px;background:var(--ai2);border-radius:3px;overflow:hidden;margin-top:4px}
-.focusbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#f5d98a);transition:width .25s}
+.focusbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--ki));transition:width .25s}
 
 /* ---- ぬいパワー帯 ---- */
 .pwband{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
@@ -165,40 +209,40 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .pwband .lbl{font-size:10px;color:var(--tx-dim);letter-spacing:.1em}
 .pwchip{font-weight:900;font-size:16px;padding:5px 12px;border-radius:8px;letter-spacing:.06em}
 .pwchip.small{font-size:12px;padding:3px 8px}
-.pw-weak{background:#2e4a6e;color:#9ec7f0}
-.pw-normal{background:#3a5a34;color:#b8e8a8}
-.pw-strong{background:#6e4a1e;color:#f5c884}
-.pw-max{background:#6e2828;color:#f7a0a0}
-.pw-crit{background:#5a2a6e;color:#e0aef5}
-.pw-rand{background:#3a3a4a;color:#c8c8d8}
+.pw-weak{background:#39435f;color:#b3ccf7}
+.pw-normal{background:#37503f;color:#b5e8c3}
+.pw-strong{background:#5c4a38;color:#f7d2a8}
+.pw-max{background:#5c3944;color:#f7b3c0}
+.pw-crit{background:#4c3a5e;color:#dcc2f5}
+.pw-rand{background:#3d3a4c;color:#cfcadd}
 .pw-arrow{color:var(--tx-dim)}
 #pw-seishin{font-size:11px;color:var(--wakaba);border:1px solid var(--wakaba);border-radius:6px;padding:2px 6px}
-#rand-resolve{margin-left:auto;font-size:12px;background:var(--gold);color:#241a05;font-weight:700;border-radius:8px;padding:6px 10px}
+#rand-resolve{margin-left:auto;font-size:12px;background:var(--gold);color:#47253a;font-weight:700;border-radius:8px;padding:6px 10px}
 .clothfx{font-size:12px;color:var(--tx-dim);padding:4px 2px}
-.fx-half{color:var(--wakaba)} .fx-crit{color:var(--gold)} .fx-pink{color:#f5a0d5} .fx-regen{color:#8ad0f0}
-#p-hissatsu{font-size:12px;color:#f5c884;padding:2px}
+.fx-half{color:var(--wakaba)} .fx-crit{color:var(--gold)} .fx-pink{color:#f5b8dd} .fx-regen{color:#a3d8f0}
+#p-hissatsu{font-size:12px;color:#f7d2a8;padding:2px}
 
 /* ---- 布グリッド（シグネチャ） ---- */
 #cloth{display:grid;gap:8px;margin:8px 0 10px;background:
-  repeating-linear-gradient(45deg,#18203a 0 12px,#151c34 12px 24px);
+  repeating-linear-gradient(45deg,#2a2739 0 12px,#262333 12px 24px);
   padding:12px;border-radius:14px;border:1px solid var(--line)}
 .cell{position:relative;background:var(--linen);color:var(--ink);border-radius:6px;
   min-height:82px;padding:8px 6px 6px;text-align:center;
-  border:2px dashed rgba(90,70,40,.45);
-  box-shadow:inset 0 0 0 3px rgba(255,255,255,.35), 0 2px 4px rgba(0,0,0,.4)}
+  border:2px dashed rgba(150,100,120,.4);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.4), 0 2px 4px rgba(0,0,0,.35)}
 .cell.empty{background:transparent;border:none;box-shadow:none}
 .cell .c-dmg{font-family:var(--num);font-size:26px;font-weight:800;line-height:1}
-.cell .c-std{font-size:11px;color:#7a6a4a;margin-top:1px}
-.cell .c-rem{font-family:var(--num);font-size:13px;font-weight:700;margin-top:3px;color:#4a3a1a}
-.cell .c-rem.neg{color:#b02a2a}
-.cell .c-rem.zero{color:#1a7a4a}
-.cell.c-near{border-color:#b08a1a;box-shadow:inset 0 0 0 3px var(--ki),0 2px 4px rgba(0,0,0,.4)}
-.cell.c-zero{border-color:#2a8a5a;box-shadow:inset 0 0 0 3px var(--wakaba),0 2px 6px rgba(0,0,0,.4);background:#e8f0dd}
-.cell.c-over{border-color:#b03a3a;box-shadow:inset 0 0 0 3px var(--aka),0 2px 4px rgba(0,0,0,.4);background:#f2ddd6}
+.cell .c-std{font-size:11px;color:#9a7a8a;margin-top:1px}
+.cell .c-rem{font-family:var(--num);font-size:13px;font-weight:700;margin-top:3px;color:#5c4456}
+.cell .c-rem.neg{color:#c8556e}
+.cell .c-rem.zero{color:#2a9a68}
+.cell.c-near{border-color:#d9b86a;box-shadow:inset 0 0 0 3px var(--ki),0 2px 4px rgba(0,0,0,.4)}
+.cell.c-zero{border-color:#7ac9a0;box-shadow:inset 0 0 0 3px var(--wakaba),0 2px 6px rgba(0,0,0,.4);background:#e9f5ec}
+.cell.c-over{border-color:#d98a9a;box-shadow:inset 0 0 0 3px var(--aka),0 2px 4px rgba(0,0,0,.4);background:#f9e6ea}
 .cell.c-glow{animation:glow 1.2s ease-in-out infinite alternate}
 @keyframes glow{from{box-shadow:inset 0 0 0 3px #f5a0d5,0 0 8px 2px #f5a0d5}to{box-shadow:inset 0 0 0 3px #ff7ac8,0 0 16px 5px #ff7ac8}}
 .cell.c-target{outline:3px solid var(--gold);outline-offset:2px}
-.cell .c-tag{position:absolute;top:2px;right:3px;font-size:9px;background:#5a2a6e;color:#e0aef5;border-radius:3px;padding:1px 3px}
+.cell .c-tag{position:absolute;top:2px;right:3px;font-size:9px;background:#4c3a5e;color:#dcc2f5;border-radius:3px;padding:1px 3px}
 @media (prefers-reduced-motion: reduce){.cell.c-glow{animation:none;box-shadow:inset 0 0 0 3px #ff7ac8,0 0 12px 3px #ff7ac8}}
 
 /* ---- コマンド ---- */
@@ -207,9 +251,9 @@ h1,h2{font-weight:800;letter-spacing:.04em}
   display:flex;flex-direction:column;align-items:center;gap:2px}
 .cmd .cmd-n{font-size:12px;font-weight:700}
 .cmd .cmd-c{font-family:var(--num);font-size:12px;color:var(--gold)}
-.cmd.util .cmd-n{color:#a8c0f0}
-.cmd.heal .cmd-n{color:#8ad0b0}
-.cmd.sel{border-color:var(--gold);background:#33301a}
+.cmd.util .cmd-n{color:#b3c6f2}
+.cmd.heal .cmd-n{color:#a0dcc0}
+.cmd.sel{border-color:var(--gold);background:#453247}
 .cmd.poor{opacity:.35}
 .uv{font-style:normal;color:var(--ki);font-size:10px}
 .act-row{display:flex;gap:8px;margin:8px 0}
@@ -218,7 +262,7 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .sub-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .mini{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px}
 .mini.danger{color:#f09090;border-color:#6e3a3a}
-.pfb.on{border-color:var(--gold);color:var(--gold);background:rgba(226,179,74,.12)}
+.pfb.on{border-color:var(--gold);color:var(--gold);background:rgba(240,179,199,.14)}
 
 /* ---- インサイト ---- */
 #insight{background:var(--ai2);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:44px}
@@ -230,14 +274,14 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .dists{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .dist{background:var(--panel);border-radius:6px;padding:3px 6px;font-family:var(--num);font-size:12px}
 .dist i{font-style:normal;color:var(--tx-dim);font-size:10px;margin-left:3px}
-.dist.z{background:#1c4a3a;color:var(--wakaba)}
-.dist.n{background:#4a4218;color:var(--ki)}
-.dist.o{background:#4a2020;color:#f09090}
+.dist.z{background:#2e4a3c;color:var(--wakaba)}
+.dist.n{background:#4e4630;color:var(--ki)}
+.dist.o{background:#4e3340;color:var(--aka)}
 .hint{color:var(--tx-dim);font-size:12px;margin:6px 0}
 
 /* ---- 結果 ---- */
 .res-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 16px;text-align:center;margin-top:24px}
-.res-card.big{border-color:var(--gold);box-shadow:0 0 24px rgba(226,179,74,.25)}
+.res-card.big{border-color:var(--gold);box-shadow:0 0 24px rgba(240,179,199,.3)}
 .res-stars{display:flex;justify-content:center;gap:8px;color:var(--gold)}
 .res-stars .svgi{width:40px;height:40px;stroke-width:1.6}
 .res-stars .star-f{fill:var(--gold);stroke:var(--gold)}
@@ -250,17 +294,32 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .res-actions{display:flex;gap:8px;margin-top:10px}
 
 /* ---- モーダル ---- */
-#modal{position:fixed;inset:0;background:rgba(6,9,18,.7);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+#modal{position:fixed;inset:0;background:rgba(6,9,18,.68);z-index:60;display:flex;align-items:flex-end;justify-content:center}
 .modal-in{background:var(--ai2);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:560px;
-  max-height:82vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+  max-height:86vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);
+  animation:sheetUp .22s cubic-bezier(.3,.9,.3,1)}
+@keyframes sheetUp{from{transform:translateY(28px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.modal-in{animation:none}}
+.modal-in::before{content:"";align-self:center;width:38px;height:4px;border-radius:2px;background:var(--line);margin-top:8px}
+.sheet-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--tx-dim);font-size:12px;margin-bottom:10px}
+.sh-grid{display:grid;gap:5px;background:repeating-linear-gradient(45deg,rgba(160,110,135,.12) 0 10px,rgba(160,110,135,.05) 10px 20px);padding:8px;border-radius:10px;border:1px solid var(--line);margin-bottom:10px}
+.sh-cell{background:var(--linen);color:var(--ink);border-radius:5px;text-align:center;
+  font-family:var(--num);font-weight:800;font-size:15px;padding:9px 2px;border:1.5px dashed rgba(150,100,120,.38)}
+.sh-cell.empty{background:transparent;border:none}
+.sh-pat{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.sh-pat .pwchip{font-size:11px;padding:3px 7px;position:relative}
+.sh-pat .pwchip .lp{position:absolute;top:-6px;right:-4px;width:13px;height:13px;color:var(--gold)}
+.sh-pat .pwchip .lp .svgi{width:13px;height:13px;stroke-width:2.6}
+.sheet-start{display:flex;flex-direction:column;gap:9px;margin-top:2px}
+.btn.big{padding:15px;font-size:16px}
 #modal-title{font-size:15px;font-weight:800;padding:14px 16px 8px}
 #modal-body{padding:4px 16px 12px;overflow-y:auto}
 .modal-btns{display:flex;gap:8px;padding:8px 16px 14px;border-top:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:9px 12px;
   font-family:var(--num);font-size:16px;font-weight:700;min-width:56px}
-.chip.on{border-color:var(--gold);background:#33301a;color:var(--gold)}
-.chip.crit{color:#f5c884}
+.chip.on{border-color:var(--gold);background:#453247;color:var(--gold)}
+.chip.crit{color:#f7d2a8}
 .chip.pwc{font-family:inherit;font-size:13px}
 .roll-cell{margin-bottom:12px}
 .roll-t{font-size:12px;color:var(--tx-dim);margin-bottom:5px}
@@ -286,9 +345,9 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .ed-h{font-size:12px;color:var(--gold);font-weight:700;margin:12px 0 6px}
 .ie-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .ed-c{position:relative;background:var(--panel);border:1px dashed var(--line);border-radius:8px;padding:6px}
-.ed-c.on{background:#2a2a1c;border-color:var(--gold)}
+.ed-c.on{background:#453247;border-color:var(--gold)}
 .ed-c input{text-align:center;font-family:var(--num);padding:6px 4px}
-.ed-c .ed-tgl{position:absolute;top:-6px;right:-4px;background:var(--gold);color:#241a05;border-radius:50%;
+.ed-c .ed-tgl{position:absolute;top:-6px;right:-4px;background:var(--gold);color:#47253a;border-radius:50%;
   width:22px;height:22px;font-size:12px;font-weight:900}
 .pat-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .patc{position:relative;border-radius:8px;padding:6px 8px 6px 6px;font-size:10px;display:inline-flex;flex-direction:column;align-items:center;min-width:38px}
@@ -308,14 +367,16 @@ h1,h2{font-weight:800;letter-spacing:.04em}
 .sec h2{font-size:14px;margin:0 0 8px;color:var(--gold)}
 
 /* ---- トースト ---- */
-#toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(16px);
-  background:#0c1120;border:1px solid var(--gold);color:var(--tx);border-radius:10px;padding:10px 16px;
+#toast{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(16px);
+  background:#1d1a28;border:1px solid var(--gold);color:var(--tx);border-radius:10px;padding:10px 16px;
   font-size:13px;opacity:0;transition:.22s;z-index:70;max-width:88vw;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 </style>
 </head>
 <body>
+<div id="app">
+<main id="stage">
 
 <button id="theme-toggle" class="theme-btn" aria-label="テーマ切替"><svg class="svgi ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.8M12 18.6v2.8M2.6 12h2.8M18.6 12h2.8M5.4 5.4l2 2M16.6 16.6l2 2M18.6 5.4l-2 2M7.4 16.6l-2 2"/></svg><svg class="svgi ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
 
@@ -324,16 +385,13 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
   <div class="apph"><h1>さいほう工房</h1><span class="sub">DQX 裁縫シミュレーター＆サポート</span></div>
   <div class="sub-row" id="part-filter"></div>
   <div id="item-list"></div>
-  <div class="start-row">
-    <button class="btn" id="btn-start-sim">シミュレーション開始</button>
-    <button class="btn ghost" id="btn-start-support">実機サポート開始</button>
-  </div>
-  <p class="hint">シミュレーション＝乱数で本番同様に縫う練習。実機サポート＝ゲームの結果を入力しながら、分布・逆引き・AI推奨で次の一手を検討。</p>
+  <p class="hint">商材をタップすると開始メニューが開きます。シミュレーション＝乱数で本番同様に練習／実機サポート＝ゲームの結果を入力しながら分布・逆引き・AIで次の一手を検討。</p>
 </section>
 
 <!-- プレイ -->
 <section class="screen" id="scr-play">
   <div id="play-main">
+    <div class="p-sticky">
     <div class="p-head">
       <div class="l"><span id="p-item"></span> <span class="badge sim" id="p-mode"></span></div>
     </div>
@@ -352,21 +410,23 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
     </div>
     <div class="clothfx" id="p-clothfx"></div>
     <div id="p-hissatsu" class="hide"></div>
+    </div><!-- /.p-sticky -->
 
-    <div id="cloth"></div>
-
-    <div id="commands"></div>
-    <div class="act-row">
-      <button class="btn" id="btn-exec" disabled>実行</button>
-      <button class="btn ghost btn-ic" id="btn-finish"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4L17 12H6"/></svg>しあげる</button>
-    </div>
-    <div class="sub-row">
+    <div id="cloth"></div>    <div class="sub-row">
       <button class="mini" id="btn-undo"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6 4 10l4 4"/><path d="M4 10h9a6 6 0 1 1 0 12h-3"/></svg>1手戻す</button>
       <button class="mini" id="btn-ai"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="m18.8 15 .8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z"/></svg><span id="ai-label">AI推奨手</span></button>
       <button class="mini" id="btn-edit-state"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1Z"/><path d="m14.5 6.5 3 3"/></svg>状態編集</button>
       <button class="mini" id="btn-glow-fix"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c.6 3.6 2 6.4 4.4 8-2.4 1.6-3.8 4.4-4.4 8-.6-3.6-2-6.4-4.4-8C10 10.4 11.4 7.6 12 4Z"/></svg>光マス修正</button>
     </div>
     <div id="insight"></div>
+
+    <div class="cmd-dock">
+      <div id="commands"></div>
+      <div class="act-row">
+        <button class="btn" id="btn-exec" disabled>実行</button>
+        <button class="btn ghost btn-ic" id="btn-finish"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4L17 12H6"/></svg>しあげる</button>
+      </div>
+    </div>
   </div>
   <div id="play-result" class="hide"></div>
 </section>
@@ -438,6 +498,7 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
   <p class="hint">消費集中力は実機一覧に基づく値です。異なる場合はここで修正できます。</p>
 </section>
 
+</main>
 <nav class="tabbar">
   <button data-scr="home" class="on"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12M6 20h12M8 4v16M16 4v16M8 8.5h8M8 12h8M8 15.5h8"/><path d="M16 18.5c2.6.2 4 1.2 5.5 1"/></svg>ホーム</button>
   <button data-scr="play"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20c1-4 4-8 13.2-13.2"/><circle cx="18.3" cy="5.7" r="1.9"/><path d="M20.6 8.2c1 2.4-.4 4.6-2.8 5.6"/></svg>作業台</button>
@@ -445,6 +506,7 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
   <button data-scr="data"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 2.8h6v3H9zM8.5 10.5h7M8.5 14h7M8.5 17.5h4.5"/></svg>データ</button>
   <button data-scr="settings"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8.4M18.4 7H20M4 12h2.4M12.4 12H20M4 17h10.4"/><circle cx="15.4" cy="7" r="2"/><circle cx="9.4" cy="12" r="2"/><circle cx="17.4" cy="17" r="2"/></svg>設定</button>
 </nav>
+</div><!-- /#app -->
 
 <div id="modal" class="hide">
   <div class="modal-in">
@@ -1284,6 +1346,17 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
   // ホーム
   // =========================================================
   let partFilter = 'すべて';
+  const CLOTH_CHIP = {
+    none: '<span class="clothchip cl-none">特性なし</span>',
+    regen: '<span class="clothchip cl-regen">再生布</span>',
+    rainbow: '<span class="clothchip cl-rainbow">虹布</span>',
+    pink: '<span class="clothchip cl-pink">ピンク布</span>',
+  };
+  const CHEV_SVG = '<svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>';
+  function setNameOf(it) {
+    const i = it.name.indexOf('・');
+    return i > 0 ? it.name.slice(0, i) : 'その他';
+  }
   function renderHome() {
     const pf = $('#part-filter');
     const parts = ['すべて', '頭', '体上', '体下', '腕', '足'];
@@ -1291,19 +1364,58 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
     $$('.pfb', pf).forEach(b => b.onclick = () => { partFilter = b.textContent; renderHome(); });
     const list = $('#item-list');
     list.innerHTML = '';
+    let lastSet = null;
     items.forEach((it, i) => {
       if (partFilter !== 'すべて' && it.part !== partFilter) return;
+      const set = setNameOf(it);
+      if (set !== lastSet) {
+        const h = document.createElement('div');
+        h.className = 'set-h';
+        h.textContent = set;
+        list.appendChild(h);
+        lastSet = set;
+      }
+      const short = it.name.indexOf('・') > 0 ? it.name.slice(it.name.indexOf('・') + 1) : it.name;
       const el = document.createElement('button');
       el.className = 'item-card';
       el.innerHTML = `
-        <div class="ic-name">${esc(it.name)}${it.sample ? '<span class="badge warn">要検証</span>' : ''}</div>
-        <div class="ic-meta">${esc(it.part)} ／ ${it.cells.length}マス ／ 許容誤差 ${it.allow} ／ ${clothName(it.cloth)}</div>`;
-      el.onclick = () => { selectedItem = i; renderHome(); };
-      if (i === selectedItem) el.classList.add('sel');
+        <div class="ic-body">
+          <div class="ic-name">${esc(short)}${it.sample ? '<span class="badge warn">要検証</span>' : ''}</div>
+          <div class="ic-meta"><span>${esc(it.part)}・${it.cells.length}マス・許容±${it.allow}</span>${CLOTH_CHIP[it.cloth] || ''}</div>
+        </div>
+        <span class="chev">${CHEV_SVG}</span>`;
+      el.onclick = () => openItemSheet(i);
       list.appendChild(el);
     });
-    $('#btn-start-sim').disabled = selectedItem == null;
-    $('#btn-start-support').disabled = selectedItem == null;
+  }
+
+  // ---- 商材シート: プレビュー + 開始 ----
+  function openItemSheet(i) {
+    selectedItem = i;
+    const it = items[i];
+    const rows = Math.max(...it.cells.map(c => c.r)) + 1;
+    const cols = Math.max(...it.cells.map(c => c.c)) + 1;
+    const map = {};
+    it.cells.forEach(c => map[c.r + ',' + c.c] = c.std);
+    let grid = '';
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const v = map[r + ',' + c];
+      grid += v != null ? `<div class="sh-cell">${v}</div>` : '<div class="sh-cell empty"></div>';
+    }
+    const pat = it.pattern.map((p, k) =>
+      `<span class="pwchip ${PW_CLASS[p]}">${E.POWER_SHORT[p]}${k === it.patternLoop ? `<span class="lp">${SVG.loop}</span>` : ''}</span>`).join('');
+    const body = `
+      <div class="sheet-meta"><span>${esc(it.part)}・${it.cells.length}マス・大成功 誤差${it.allow}以内</span>${CLOTH_CHIP[it.cloth] || ''}</div>
+      <div class="sh-grid" style="grid-template-columns:repeat(${cols},1fr)">${grid}</div>
+      <div class="sh-pat">${pat}</div>
+      ${it.note ? `<p class="hint">${esc(it.note)}</p>` : ''}
+      <div class="sheet-start">
+        <button class="btn big" id="sheet-sim">シミュレーション開始</button>
+        <button class="btn ghost big" id="sheet-sup">実機サポート開始</button>
+      </div>`;
+    openModal(esc(it.name), body, null, 'none');
+    $('#sheet-sim').onclick = () => { closeModal(); startPlay('sim'); };
+    $('#sheet-sup').onclick = () => { closeModal(); startPlay('support'); };
   }
   let selectedItem = 0;
   function clothName(c) { return { none: '布特性なし', regen: '再生布', rainbow: '虹布', pink: 'ピンク布' }[c] || c; }
@@ -2029,10 +2141,16 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
     $('#modal-title').textContent = title;
     $('#modal-body').innerHTML = bodyHtml;
     $('#modal').classList.remove('hide');
-    $('#modal-cancel').classList.toggle('hide', !!okOnly);
-    $('#modal-ok').textContent = okOnly ? '閉じる' : '決定';
+    const footer = $('#modal .modal-btns');
+    if (okOnly === 'none') { footer.classList.add('hide'); }
+    else {
+      footer.classList.remove('hide');
+      $('#modal-cancel').classList.toggle('hide', !!okOnly);
+      $('#modal-ok').textContent = okOnly ? '閉じる' : '決定';
+    }
     modalOk = onOk;
   }
+  $('#modal').addEventListener('click', (e) => { if (e.target === $('#modal')) closeModal(); });
   function closeModal() { $('#modal').classList.add('hide'); modalOk = null; }
   $('#modal-ok').onclick = () => { if (!modalOk || modalOk() !== false) closeModal(); };
   $('#modal-cancel').onclick = closeModal;
@@ -2053,8 +2171,6 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
     show(b.dataset.scr);
     if (b.dataset.scr === 'play') renderPlay();
   });
-  $('#btn-start-sim').onclick = () => startPlay('sim');
-  $('#btn-start-support').onclick = () => startPlay('support');
   $('#btn-exec').onclick = execAction;
   $('#btn-undo').onclick = undo;
   $('#btn-finish').onclick = () => { if (confirm('しあげますか？')) finish(); };
@@ -2080,7 +2196,7 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
     document.documentElement.dataset.theme = t;
     themeBtn.setAttribute('aria-label', t === 'dark' ? 'ライトモードに切り替え' : 'ダークモードに切り替え');
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.content = t === 'dark' ? '#12182a' : '#f2ecdd';
+    if (m) m.content = t === 'dark' ? '#232030' : '#faf3f5';
     store.set('theme', t);
   }
   function circularThemeSwitch(ev) {
@@ -2102,7 +2218,7 @@ button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-o
     } else {
       const ov = document.createElement('div');
       ov.className = 'theme-ripple';
-      ov.style.background = next === 'dark' ? '#12182a' : '#f2ecdd';
+      ov.style.background = next === 'dark' ? '#232030' : '#faf3f5';
       ov.style.left = x + 'px'; ov.style.top = y + 'px';
       document.body.appendChild(ov);
       requestAnimationFrame(() => { ov.style.width = ov.style.height = (r * 2) + 'px'; });
