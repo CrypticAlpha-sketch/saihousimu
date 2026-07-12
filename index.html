@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>さいほう工房 — DQX裁縫シミュレーター＆サポート</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="さいほう工房">
+<meta name="theme-color" content="#12182a">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<style>
+:root{
+  --ai:#12182a;        /* 藍 */
+  --ai2:#1a2340;       /* 藍・淡 */
+  --panel:#202a4d;
+  --line:#31406e;
+  --linen:#efe6d2;     /* 麻布 */
+  --linen-d:#d9cdb2;
+  --ink:#2a2318;       /* 布上の墨 */
+  --gold:#e2b34a;      /* 縫糸金 */
+  --aka:#e0524e;       /* 朱 */
+  --ki:#eecf5a;        /* 黄 */
+  --wakaba:#4ecb8d;    /* 若葉 */
+  --tx:#e8ecf7;
+  --tx-dim:#9aa6c8;
+  --num:"Avenir Next Condensed","DIN Alternate",ui-monospace,"SF Mono",monospace;
+}
+/* ---- ライトテーマ（生成り×藍） ---- */
+[data-theme=light]{
+  --ai:#f2ecdd;
+  --ai2:#e9e1cb;
+  --panel:#fbf7ec;
+  --line:#d3c7a6;
+  --linen:#fffdf6;
+  --linen-d:#e8dfc8;
+  --ink:#2a2318;
+  --gold:#a97e22;
+  --aka:#c43f3b;
+  --ki:#b8940e;
+  --wakaba:#1c8f5a;
+  --tx:#2b2517;
+  --tx-dim:#7c7157;
+}
+[data-theme=light] .tabbar{background:rgba(250,246,235,.96);border-top-color:var(--line)}
+[data-theme=light] #cloth{background:repeating-linear-gradient(45deg,#e4dbc2 0 12px,#ded4b8 12px 24px)}
+[data-theme=light] .cell{box-shadow:inset 0 0 0 3px rgba(255,255,255,.6),0 2px 5px rgba(90,70,40,.25)}
+[data-theme=light] .cell.c-near{box-shadow:inset 0 0 0 3px #d9b520,0 2px 5px rgba(90,70,40,.25)}
+[data-theme=light] .cell.c-zero{box-shadow:inset 0 0 0 3px var(--wakaba),0 2px 6px rgba(90,70,40,.25)}
+[data-theme=light] .cell.c-over{box-shadow:inset 0 0 0 3px var(--aka),0 2px 5px rgba(90,70,40,.25)}
+[data-theme=light] .btn{color:#fff;background:#a97e22}
+[data-theme=light] .btn.ghost{color:var(--tx);background:var(--panel)}
+[data-theme=light] #toast{background:#fffdf4;color:var(--tx);box-shadow:0 4px 16px rgba(80,60,20,.25)}
+[data-theme=light] .pw-weak{background:#d7e6f8;color:#2a5a8e}
+[data-theme=light] .pw-normal{background:#d8ecd0;color:#2e6b28}
+[data-theme=light] .pw-strong{background:#f7e3c4;color:#8a5a12}
+[data-theme=light] .pw-max{background:#f8d4d4;color:#a02a2a}
+[data-theme=light] .pw-crit{background:#ecd6f5;color:#6e2a8a}
+[data-theme=light] .pw-rand{background:#e2e2ea;color:#4a4a5a}
+[data-theme=light] .dist.z{background:#d8ecd8;color:#1c7a48}
+[data-theme=light] .dist.n{background:#f2e8c0;color:#7a5f08}
+[data-theme=light] .dist.o{background:#f5d8d8;color:#a83030}
+[data-theme=light] .badge.warn{background:#f0e2b0;color:#7a5a10}
+[data-theme=light] .badge.sim{background:#d0ead8;color:#1c7a48}
+[data-theme=light] .badge.sup{background:#f5ddc8;color:#9a5a1c}
+[data-theme=light] .cmd.util .cmd-n{color:#3a5a9e}
+[data-theme=light] .cmd.heal .cmd-n{color:#1c7a58}
+[data-theme=light] .theme-btn{box-shadow:0 2px 8px rgba(90,70,40,.3)}
+[data-theme=light] .patc .patl{background:var(--panel)}
+[data-theme=light] #pw-seishin{color:#1c8f5a;border-color:#1c8f5a}
+
+
+/* ---- SVGアイコン ---- */
+.svgi{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;display:block}
+.tabbar .svgi{width:21px;height:21px;stroke-width:1.7}
+.theme-btn .svgi{width:21px;height:21px}
+.theme-btn .ic-moon{display:none}
+[data-theme=light] .theme-btn .ic-sun{display:none}
+[data-theme=light] .theme-btn .ic-moon{display:block}
+.mini{display:inline-flex;align-items:center;gap:5px}
+.mini .svgi{width:14px;height:14px;stroke-width:2}
+.btn-ic{display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-ic .svgi{width:16px;height:16px;stroke-width:2}
+.pw-arrow{display:flex;align-items:center}
+.pw-arrow .svgi{width:14px;height:14px;stroke-width:2.4}
+.patl .svgi{width:10px;height:10px;stroke-width:2.4;margin:3px auto 0;pointer-events:none}
+.ed-tgl .svgi{width:12px;height:12px;stroke-width:2.6;margin:0 auto;pointer-events:none}
+.ed-tgl{display:flex;align-items:center;justify-content:center}
+.dr-btns .mini{gap:4px}
+
+/* ---- テーマ切替（円形リビール） ---- */
+.theme-btn{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:50;
+  width:42px;height:42px;border-radius:50%;background:var(--panel);border:1px solid var(--line);
+  font-size:19px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;
+  transition:transform .15s}
+.theme-btn:active{transform:scale(.88)}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:1}
+::view-transition-new(root){z-index:9999}
+.theme-ripple{position:fixed;width:0;height:0;border-radius:50%;transform:translate(-50%,-50%);
+  z-index:9998;pointer-events:none;
+  transition:width .55s cubic-bezier(.3,.7,.2,1),height .55s cubic-bezier(.3,.7,.2,1)}
+html{background:var(--ai)}
+body,.tabbar,.item-card,.sec,.cell,#cloth,#insight,.modal-in{transition:background-color .2s,border-color .2s,color .2s}
+@media (prefers-reduced-motion: reduce){.theme-ripple,body,.tabbar,.item-card,.sec,.cell,#cloth,#insight,.modal-in{transition:none}}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--ai);color:var(--tx);
+  font-family:-apple-system,"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
+  font-size:15px;overscroll-behavior:none}
+body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer}
+input,select{font-family:inherit;font-size:16px;background:var(--ai2);color:var(--tx);
+  border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+h1,h2{font-weight:800;letter-spacing:.04em}
+.hide{display:none!important}
+
+/* ---- 画面 ---- */
+.screen{display:none;padding:12px 14px calc(20px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+.screen.active{display:block}
+.apph{display:flex;align-items:baseline;gap:10px;margin:6px 0 14px;padding-top:env(safe-area-inset-top);padding-right:52px}
+.apph h1{font-size:20px;margin:0}
+.apph .sub{color:var(--tx-dim);font-size:12px}
+
+/* ---- タブバー ---- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(14,19,36,.96);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:40;
+  padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{flex:1;padding:10px 0 8px;color:var(--tx-dim);font-size:11px;display:flex;flex-direction:column;gap:2px;align-items:center}
+.tabbar button .ico{font-size:18px;line-height:1}
+.tabbar button.on{color:var(--gold)}
+
+/* ---- ホーム ---- */
+.item-card{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:border-color .15s}
+.item-card.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.ic-name{font-weight:700;font-size:15px}
+.ic-meta{color:var(--tx-dim);font-size:12px;margin-top:3px}
+.start-row{display:flex;gap:10px;margin-top:14px}
+.btn{flex:1;background:var(--gold);color:#241a05;font-weight:800;border-radius:12px;padding:14px;font-size:15px}
+.btn:disabled{opacity:.35}
+.btn.ghost{background:var(--panel);color:var(--tx);border:1px solid var(--line)}
+.badge{font-size:10px;border-radius:4px;padding:2px 5px;margin-left:6px;font-weight:700;vertical-align:middle}
+.badge.warn{background:#5a4a17;color:var(--ki)}
+.badge.sim{background:#1c4a3a;color:var(--wakaba)}
+.badge.sup{background:#4a2a1c;color:#f0a76a}
+
+/* ---- プレイ ヘッダ ---- */
+.p-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:env(safe-area-inset-top);padding-right:52px}
+.p-head .l{min-width:0}
+#p-item{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-stats{display:flex;gap:14px;margin:8px 0 6px;align-items:center}
+.stat{font-size:11px;color:var(--tx-dim)}
+.stat b{display:block;font-family:var(--num);font-size:22px;color:var(--tx);line-height:1}
+.focuswrap{flex:1}
+.focusbar{height:6px;background:var(--ai2);border-radius:3px;overflow:hidden;margin-top:4px}
+.focusbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#f5d98a);transition:width .25s}
+
+/* ---- ぬいパワー帯 ---- */
+.pwband{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:8px 12px;margin:6px 0}
+.pwband .lbl{font-size:10px;color:var(--tx-dim);letter-spacing:.1em}
+.pwchip{font-weight:900;font-size:16px;padding:5px 12px;border-radius:8px;letter-spacing:.06em}
+.pwchip.small{font-size:12px;padding:3px 8px}
+.pw-weak{background:#2e4a6e;color:#9ec7f0}
+.pw-normal{background:#3a5a34;color:#b8e8a8}
+.pw-strong{background:#6e4a1e;color:#f5c884}
+.pw-max{background:#6e2828;color:#f7a0a0}
+.pw-crit{background:#5a2a6e;color:#e0aef5}
+.pw-rand{background:#3a3a4a;color:#c8c8d8}
+.pw-arrow{color:var(--tx-dim)}
+#pw-seishin{font-size:11px;color:var(--wakaba);border:1px solid var(--wakaba);border-radius:6px;padding:2px 6px}
+#rand-resolve{margin-left:auto;font-size:12px;background:var(--gold);color:#241a05;font-weight:700;border-radius:8px;padding:6px 10px}
+.clothfx{font-size:12px;color:var(--tx-dim);padding:4px 2px}
+.fx-half{color:var(--wakaba)} .fx-crit{color:var(--gold)} .fx-pink{color:#f5a0d5} .fx-regen{color:#8ad0f0}
+#p-hissatsu{font-size:12px;color:#f5c884;padding:2px}
+
+/* ---- 布グリッド（シグネチャ） ---- */
+#cloth{display:grid;gap:8px;margin:8px 0 10px;background:
+  repeating-linear-gradient(45deg,#18203a 0 12px,#151c34 12px 24px);
+  padding:12px;border-radius:14px;border:1px solid var(--line)}
+.cell{position:relative;background:var(--linen);color:var(--ink);border-radius:6px;
+  min-height:82px;padding:8px 6px 6px;text-align:center;
+  border:2px dashed rgba(90,70,40,.45);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.35), 0 2px 4px rgba(0,0,0,.4)}
+.cell.empty{background:transparent;border:none;box-shadow:none}
+.cell .c-dmg{font-family:var(--num);font-size:26px;font-weight:800;line-height:1}
+.cell .c-std{font-size:11px;color:#7a6a4a;margin-top:1px}
+.cell .c-rem{font-family:var(--num);font-size:13px;font-weight:700;margin-top:3px;color:#4a3a1a}
+.cell .c-rem.neg{color:#b02a2a}
+.cell .c-rem.zero{color:#1a7a4a}
+.cell.c-near{border-color:#b08a1a;box-shadow:inset 0 0 0 3px var(--ki),0 2px 4px rgba(0,0,0,.4)}
+.cell.c-zero{border-color:#2a8a5a;box-shadow:inset 0 0 0 3px var(--wakaba),0 2px 6px rgba(0,0,0,.4);background:#e8f0dd}
+.cell.c-over{border-color:#b03a3a;box-shadow:inset 0 0 0 3px var(--aka),0 2px 4px rgba(0,0,0,.4);background:#f2ddd6}
+.cell.c-glow{animation:glow 1.2s ease-in-out infinite alternate}
+@keyframes glow{from{box-shadow:inset 0 0 0 3px #f5a0d5,0 0 8px 2px #f5a0d5}to{box-shadow:inset 0 0 0 3px #ff7ac8,0 0 16px 5px #ff7ac8}}
+.cell.c-target{outline:3px solid var(--gold);outline-offset:2px}
+.cell .c-tag{position:absolute;top:2px;right:3px;font-size:9px;background:#5a2a6e;color:#e0aef5;border-radius:3px;padding:1px 3px}
+@media (prefers-reduced-motion: reduce){.cell.c-glow{animation:none;box-shadow:inset 0 0 0 3px #ff7ac8,0 0 12px 3px #ff7ac8}}
+
+/* ---- コマンド ---- */
+#commands{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:4px 0}
+.cmd{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:2px}
+.cmd .cmd-n{font-size:12px;font-weight:700}
+.cmd .cmd-c{font-family:var(--num);font-size:12px;color:var(--gold)}
+.cmd.util .cmd-n{color:#a8c0f0}
+.cmd.heal .cmd-n{color:#8ad0b0}
+.cmd.sel{border-color:var(--gold);background:#33301a}
+.cmd.poor{opacity:.35}
+.uv{font-style:normal;color:var(--ki);font-size:10px}
+.act-row{display:flex;gap:8px;margin:8px 0}
+.act-row .btn{padding:12px}
+#btn-exec{flex:2}
+.sub-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.mini{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px}
+.mini.danger{color:#f09090;border-color:#6e3a3a}
+.pfb.on{border-color:var(--gold);color:var(--gold);background:rgba(226,179,74,.12)}
+
+/* ---- インサイト ---- */
+#insight{background:var(--ai2);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:44px}
+.ins-h{font-size:12px;color:var(--gold);font-weight:700;margin-bottom:6px}
+.ins-cell{margin-bottom:8px;font-size:12px}
+.ins-cell b{margin-right:8px}
+.zp{color:var(--tx-dim)} .zp.hot{color:var(--wakaba);font-weight:700}
+.cr{color:var(--tx-dim);margin-left:8px}
+.dists{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.dist{background:var(--panel);border-radius:6px;padding:3px 6px;font-family:var(--num);font-size:12px}
+.dist i{font-style:normal;color:var(--tx-dim);font-size:10px;margin-left:3px}
+.dist.z{background:#1c4a3a;color:var(--wakaba)}
+.dist.n{background:#4a4218;color:var(--ki)}
+.dist.o{background:#4a2020;color:#f09090}
+.hint{color:var(--tx-dim);font-size:12px;margin:6px 0}
+
+/* ---- 結果 ---- */
+.res-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 16px;text-align:center;margin-top:24px}
+.res-card.big{border-color:var(--gold);box-shadow:0 0 24px rgba(226,179,74,.25)}
+.res-stars{display:flex;justify-content:center;gap:8px;color:var(--gold)}
+.res-stars .svgi{width:40px;height:40px;stroke-width:1.6}
+.res-stars .star-f{fill:var(--gold);stroke:var(--gold)}
+.res-stars .star-e{fill:none;opacity:.4}
+.res-title{font-size:20px;font-weight:900;margin:8px 0 4px}
+.res-meta{color:var(--tx-dim);font-size:13px}
+.res-cells{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:14px 0}
+.rc{font-family:var(--num);font-weight:800;padding:4px 8px;border-radius:6px;background:var(--ai2)}
+.rc.z{color:var(--wakaba)} .rc.n{color:var(--ki)} .rc.o{color:#f09090}
+.res-actions{display:flex;gap:8px;margin-top:10px}
+
+/* ---- モーダル ---- */
+#modal{position:fixed;inset:0;background:rgba(6,9,18,.7);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.modal-in{background:var(--ai2);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:560px;
+  max-height:82vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+#modal-title{font-size:15px;font-weight:800;padding:14px 16px 8px}
+#modal-body{padding:4px 16px 12px;overflow-y:auto}
+.modal-btns{display:flex;gap:8px;padding:8px 16px 14px;border-top:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:9px 12px;
+  font-family:var(--num);font-size:16px;font-weight:700;min-width:56px}
+.chip.on{border-color:var(--gold);background:#33301a;color:var(--gold)}
+.chip.crit{color:#f5c884}
+.chip.pwc{font-family:inherit;font-size:13px}
+.roll-cell{margin-bottom:12px}
+.roll-t{font-size:12px;color:var(--tx-dim);margin-bottom:5px}
+.lk-list{display:flex;flex-direction:column;gap:6px}
+.lk-row{display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:8px;padding:8px 10px}
+.lk-n{flex:1;font-size:13px}
+.lk-p{font-family:var(--num);font-weight:800;color:var(--gold)}
+.ai-row{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;margin-bottom:7px;font-size:13px}
+.ai-m{display:block;color:var(--tx-dim);font-size:11px;margin-top:2px}
+
+/* ---- データ/設定 ---- */
+.data-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.data-row small{color:var(--tx-dim)}
+.dr-btns{display:flex;gap:5px;flex-shrink:0}
+.fld{display:block;font-size:12px;color:var(--tx-dim);margin-bottom:10px}
+.fld input,.fld select{margin-top:4px}
+.ed-row{display:flex;gap:10px}
+.ed-row .fld{flex:1}
+.ed-row label{font-size:13px;display:flex;align-items:center;gap:6px;margin:6px 0}
+.ed-row label input[type=number]{width:80px}
+.ed-h{font-size:12px;color:var(--gold);font-weight:700;margin:12px 0 6px}
+.ie-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ed-c{position:relative;background:var(--panel);border:1px dashed var(--line);border-radius:8px;padding:6px}
+.ed-c.on{background:#2a2a1c;border-color:var(--gold)}
+.ed-c input{text-align:center;font-family:var(--num);padding:6px 4px}
+.ed-c .ed-tgl{position:absolute;top:-6px;right:-4px;background:var(--gold);color:#241a05;border-radius:50%;
+  width:22px;height:22px;font-size:12px;font-weight:900}
+.pat-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.patc{position:relative;border-radius:8px;padding:6px 8px 6px 6px;font-size:10px;display:inline-flex;flex-direction:column;align-items:center;min-width:38px}
+.patc b{font-size:15px}
+.patc .patl{position:absolute;top:-7px;right:-5px;font-style:normal;font-size:11px;background:var(--ai);border-radius:50%;
+  width:18px;height:18px;line-height:18px;text-align:center;color:var(--tx-dim);border:1px solid var(--line)}
+.patc .patl.on{color:var(--gold);border-color:var(--gold)}
+.ed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.ed-cell{font-size:11px;color:var(--tx-dim)}
+.ed-cell input{margin-top:2px;text-align:center;font-family:var(--num)}
+#io-text{width:100%;height:140px;background:var(--ai2);color:var(--tx);border:1px solid var(--line);border-radius:8px;font-size:11px;font-family:ui-monospace,monospace;padding:8px}
+.st-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--ai2);font-size:13px}
+.st-row input{width:74px;text-align:center;font-family:var(--num)}
+#st-presets{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.lk-quick{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px}
+.sec h2{font-size:14px;margin:0 0 8px;color:var(--gold)}
+
+/* ---- トースト ---- */
+#toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(16px);
+  background:#0c1120;border:1px solid var(--gold);color:var(--tx);border-radius:10px;padding:10px 16px;
+  font-size:13px;opacity:0;transition:.22s;z-index:70;max-width:88vw;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<button id="theme-toggle" class="theme-btn" aria-label="テーマ切替"><svg class="svgi ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.8M12 18.6v2.8M2.6 12h2.8M18.6 12h2.8M5.4 5.4l2 2M16.6 16.6l2 2M18.6 5.4l-2 2M7.4 16.6l-2 2"/></svg><svg class="svgi ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+
+<!-- ホーム -->
+<section class="screen active" id="scr-home">
+  <div class="apph"><h1>さいほう工房</h1><span class="sub">DQX 裁縫シミュレーター＆サポート</span></div>
+  <div class="sub-row" id="part-filter"></div>
+  <div id="item-list"></div>
+  <div class="start-row">
+    <button class="btn" id="btn-start-sim">シミュレーション開始</button>
+    <button class="btn ghost" id="btn-start-support">実機サポート開始</button>
+  </div>
+  <p class="hint">シミュレーション＝乱数で本番同様に縫う練習。実機サポート＝ゲームの結果を入力しながら、分布・逆引き・AI推奨で次の一手を検討。</p>
+</section>
+
+<!-- プレイ -->
+<section class="screen" id="scr-play">
+  <div id="play-main">
+    <div class="p-head">
+      <div class="l"><span id="p-item"></span> <span class="badge sim" id="p-mode"></span></div>
+    </div>
+    <div class="p-stats">
+      <div class="stat">ターン<b id="p-turn">1</b></div>
+      <div class="stat focuswrap">集中力<b id="p-focus">0</b>
+        <div class="focusbar"><i id="p-focusbar"></i></div></div>
+    </div>
+    <div class="pwband">
+      <span class="lbl">ぬいパワー</span>
+      <span class="pwchip" id="pw-now">—</span>
+      <span class="pw-arrow"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></span>
+      <span class="pwchip" id="pw-next">—</span>
+      <span id="pw-seishin" class="hide"></span>
+      <button id="rand-resolve" class="hide">？を確定</button>
+    </div>
+    <div class="clothfx" id="p-clothfx"></div>
+    <div id="p-hissatsu" class="hide"></div>
+
+    <div id="cloth"></div>
+
+    <div id="commands"></div>
+    <div class="act-row">
+      <button class="btn" id="btn-exec" disabled>実行</button>
+      <button class="btn ghost btn-ic" id="btn-finish"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4L17 12H6"/></svg>しあげる</button>
+    </div>
+    <div class="sub-row">
+      <button class="mini" id="btn-undo"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6 4 10l4 4"/><path d="M4 10h9a6 6 0 1 1 0 12h-3"/></svg>1手戻す</button>
+      <button class="mini" id="btn-ai"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="m18.8 15 .8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z"/></svg><span id="ai-label">AI推奨手</span></button>
+      <button class="mini" id="btn-edit-state"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1Z"/><path d="m14.5 6.5 3 3"/></svg>状態編集</button>
+      <button class="mini" id="btn-glow-fix"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c.6 3.6 2 6.4 4.4 8-2.4 1.6-3.8 4.4-4.4 8-.6-3.6-2-6.4-4.4-8C10 10.4 11.4 7.6 12 4Z"/></svg>光マス修正</button>
+    </div>
+    <div id="insight"></div>
+  </div>
+  <div id="play-result" class="hide"></div>
+</section>
+
+<!-- データ -->
+<section class="screen" id="scr-data">
+  <div class="apph"><h1>商材データ</h1><span class="sub">基準値・パワーパターン</span></div>
+  <div class="sub-row">
+    <button class="mini" id="btn-new-item"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>新規登録</button>
+    <button class="mini" id="btn-reset-presets"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3.5v4.3h-4.3"/></svg>プリセット再読込</button>
+  </div>
+  <div id="data-list"></div>
+  <div class="sec">
+    <h2>JSONインポート／エクスポート</h2>
+    <textarea id="io-text" placeholder='{"items":[...]}'></textarea>
+    <div class="sub-row" style="margin-top:8px">
+      <button class="mini" id="btn-export"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M4 20h16"/></svg>エクスポート</button>
+      <button class="mini" id="btn-import"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7 8l5-5 5 5M4 20h16"/></svg>インポート</button>
+    </div>
+    <p class="hint">友人と商材データを共有したり、機種変更時のバックアップに使えます。</p>
+  </div>
+</section>
+
+<!-- 逆引き -->
+<section class="screen" id="scr-lookup">
+  <div class="apph"><h1>数値逆引き</h1><span class="sub">残り値 → 縫い方</span></div>
+  <input id="lk-input" type="number" inputmode="numeric" placeholder="残り数値（超過はマイナスで入力）">
+  <div class="lk-quick">
+    <button class="mini">4</button><button class="mini">5</button><button class="mini">8</button>
+    <button class="mini">12</button><button class="mini">18</button><button class="mini">36</button>
+    <button class="mini">72</button><button class="mini">108</button>
+    <button class="mini">-3</button><button class="mini">-4</button><button class="mini">-12</button>
+  </div>
+  <div id="lk-out"></div>
+  <p class="hint">確率は1発ちょうどで誤差0になる確率。糸ほぐしは超過分ぴったり、再生布は12〜16の抽選です。</p>
+</section>
+
+<!-- 設定 -->
+<section class="screen" id="scr-settings">
+  <div class="apph"><h1>設定</h1></div>
+  <div class="sec">
+    <h2>職人・道具</h2>
+    <div id="st-presets">
+      <button class="mini" data-v="306,5.6">光★3（会心4.6+Lv1.0）</button>
+      <button class="mini" data-v="311,5.3">奇跡★3（会心4.3+Lv1.0）</button>
+      <button class="mini" data-v="341,5.3">奇跡★3＋開幕+30</button>
+    </div>
+    <label class="fld">開始集中力（職人Lv＋針の合計値をゲーム画面で確認して入力）<input id="st-focus" type="number" inputmode="numeric"></label>
+    <label class="fld">基礎会心率 %（針＋できのよさ＋職人Lv補正）<input id="st-crit" type="number" step="0.1" inputmode="decimal"></label>
+    <div class="ed-row">
+      <label><input type="checkbox" id="st-sh"> 開幕ひっさつチャージ（光の針）</label>
+    </div>
+    <label class="fld">ひっさつチャージ発生率 %（シミュ用）<input id="st-hc" type="number" step="0.5" inputmode="decimal"></label>
+    <label class="fld">職人レベル上限で特技を制限（0=制限なし）<input id="st-lv" type="number" inputmode="numeric"></label>
+  </div>
+  <div class="sec">
+    <h2>AI推奨</h2>
+    <div class="ed-row">
+      <label>先読み手数 <input id="st-depth" type="number" min="1" max="3"></label>
+      <label>サンプル数 <input id="st-samples" type="number" min="4" max="200"></label>
+    </div>
+    <label class="fld">思考時間上限 ms<input id="st-time" type="number" inputmode="numeric"></label>
+  </div>
+  <div class="sec">
+    <h2>特技 消費集中力（実機と違えばここで修正）</h2>
+    <div id="st-skills"></div>
+  </div>
+  <button class="btn" id="btn-save-settings">設定を保存</button>
+  <p class="hint">消費集中力は実機一覧に基づく値です。異なる場合はここで修正できます。</p>
+</section>
+
+<nav class="tabbar">
+  <button data-scr="home" class="on"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12M6 20h12M8 4v16M16 4v16M8 8.5h8M8 12h8M8 15.5h8"/><path d="M16 18.5c2.6.2 4 1.2 5.5 1"/></svg>ホーム</button>
+  <button data-scr="play"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20c1-4 4-8 13.2-13.2"/><circle cx="18.3" cy="5.7" r="1.9"/><path d="M20.6 8.2c1 2.4-.4 4.6-2.8 5.6"/></svg>作業台</button>
+  <button data-scr="lookup"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.2 15.2 20.5 20.5"/></svg>逆引き</button>
+  <button data-scr="data"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 2.8h6v3H9zM8.5 10.5h7M8.5 14h7M8.5 17.5h4.5"/></svg>データ</button>
+  <button data-scr="settings"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8.4M18.4 7H20M4 12h2.4M12.4 12H20M4 17h10.4"/><circle cx="15.4" cy="7" r="2"/><circle cx="9.4" cy="12" r="2"/><circle cx="17.4" cy="17" r="2"/></svg>設定</button>
+</nav>
+
+<div id="modal" class="hide">
+  <div class="modal-in">
+    <div id="modal-title"></div>
+    <div id="modal-body"></div>
+    <div class="modal-btns">
+      <button class="btn ghost" id="modal-cancel">キャンセル</button>
+      <button class="btn" id="modal-ok">決定</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>/* =========================================================
+   DQX さいほう職人エンジン
+   実機挙動の再現を目的とした純ロジック層（UI非依存）
+   数値出典: dqxx.xyz 数値一覧 / tinnen.blog 7スロット表 /
+             note(マリア氏) 会心・布特性仕様 / hiroba メガしまね氏 消費集中力
+   ========================================================= */
+(function (global) {
+  'use strict';
+
+  // ---- ぬいパワー ----
+  // 0:弱い 1:普通 2:強い 3:最強 4:会心×2(威力は普通) 5:？
+  const POWER = { WEAK: 0, NORMAL: 1, STRONG: 2, MAX: 3, CRIT2: 4, RANDOM: 5 };
+  const POWER_NAMES = ['弱い', '普通', '強い', '最強', '会心×2', '？'];
+  const POWER_SHORT = ['弱', '普', '強', '最', '会', '？'];
+
+  // 威力テーブル参照用: 会心×2 は普通と同威力
+  function powRow(p) { return p === POWER.CRIT2 ? POWER.NORMAL : p; }
+
+  // ---- 7スロット・ダメージ表 (各スロット 1/7) ----
+  // 出典の確率(14.3/28.6/42.9/57.1%)から復元した重み付き7スロット
+  const T = {
+    nuu: [ // 等倍
+      [6, 7, 7, 8, 8, 9, 9],
+      [12, 13, 14, 15, 16, 17, 18],
+      [18, 20, 21, 23, 24, 26, 27],
+      [24, 26, 28, 30, 32, 34, 36],
+    ],
+    kagen: [ // かげんぬい
+      [3, 4, 4, 4, 4, 5, 5],
+      [6, 7, 7, 8, 8, 9, 9],
+      [9, 11, 11, 12, 12, 14, 14],
+      [12, 14, 14, 16, 16, 18, 18],
+    ],
+    x2: [ // 2倍ぬい
+      [12, 13, 14, 15, 16, 17, 18],
+      [24, 26, 28, 30, 32, 34, 36],
+      [36, 39, 42, 45, 48, 51, 54],
+      [48, 52, 56, 60, 64, 68, 72],
+    ],
+    x3: [ // 3倍ぬい
+      [18, 20, 21, 23, 24, 26, 27],
+      [36, 39, 42, 45, 48, 51, 54],
+      [54, 59, 63, 68, 72, 77, 81],
+      [72, 78, 84, 90, 96, 102, 108],
+    ],
+    hogushi: [ // 糸ほぐし（回復・正値で保持し適用時に減算）
+      [3, 3, 3, 3, 4, 4, 4],
+      [6, 6, 7, 7, 8, 8, 9],
+      [9, 9, 10, 10, 12, 12, 13],
+      [12, 12, 14, 14, 16, 16, 18],
+    ],
+    makiC: [ // 巻きこみぬい 中心
+      [9, 10, 11, 12, 12, 13, 14],
+      [18, 20, 21, 23, 24, 26, 27],
+      [27, 30, 32, 35, 36, 39, 41],
+      [36, 40, 42, 46, 48, 52, 54],
+    ],
+    makiA: [ // 巻きこみぬい 周囲
+      [5, 5, 6, 6, 6, 7, 7],
+      [9, 10, 11, 12, 12, 13, 14],
+      [14, 15, 17, 18, 18, 20, 21],
+      [18, 20, 22, 24, 24, 26, 28],
+    ],
+  };
+  const REGEN_HEAL = [12, 13, 14, 15, 16]; // 再生布 各1/5
+  T.han = T.makiA.map(r => r.slice()); // 半かげんぬい = 0.75倍表（巻き周囲と同一）
+  const MIDARE_TABLES = ['x2', 'nuu', 'nuu', 'kagen']; // みだれぬい 2.0/1.0/1.0/0.5倍
+  const MIDARE_MULTS = [2, 1, 1, 0.5];
+
+  // ---- 特技定義 ----
+  // shape: 選択マス(r,c)を基点とした相対座標配列 / kind: sew|heal|util
+  // Lv・消費は実機確認済みの一覧に基づく
+  const SKILLS = [
+    { id: 'nuu',     name: 'ぬう',           cost: 5,  kind: 'sew',  table: 'nuu',   shape: [[0, 0]], lv: 1 },
+    { id: 'yoko',    name: 'ヨコぬい',       cost: 8,  kind: 'sew',  table: 'nuu',   shape: [[0, 0], [0, 1]], lv: 2 },
+    { id: 'kagen',   name: 'かげんぬい',     cost: 10, kind: 'sew',  table: 'kagen', shape: [[0, 0]], lv: 3 },
+    { id: 'taki',    name: '滝のぼり',       cost: 8,  kind: 'sew',  table: 'nuu',   shape: [[0, 0], [-1, 0]], lv: 5 },
+    { id: 'tasuki',  name: 'たすきぬい',     cost: 7,  kind: 'sew',  table: 'nuu',   shape: [[0, 0], [-1, 1]], lv: 7 },
+    { id: 'x2',      name: '2倍ぬい',        cost: 9,  kind: 'sew',  table: 'x2',    shape: [[0, 0]], lv: 13 },
+    { id: 'suihei',  name: '水平ぬい',       cost: 10, kind: 'sew',  table: 'nuu',   shape: [[0, -1], [0, 0], [0, 1]], lv: 15 },
+    { id: 'seishin', name: '精神統一',       cost: 7,  kind: 'util', lv: 17 },
+    { id: 'ootaki',  name: '大滝のぼり',     cost: 10, kind: 'sew',  table: 'nuu',   shape: [[1, 0], [0, 0], [-1, 0]], lv: 19 },
+    { id: 'nerai',   name: 'ねらいぬい',     cost: 16, kind: 'sew',  table: 'nuu',   shape: [[0, 0]], critMul: 8, lv: 23 },
+    { id: 'gyaku',   name: '逆たすきぬい',   cost: 7,  kind: 'sew',  table: 'nuu',   shape: [[0, 0], [-1, -1]], lv: 25 },
+    { id: 'hogushi', name: '糸ほぐし',       cost: 16, kind: 'heal', table: 'hogushi', shape: [[0, 0]], lv: 27 },
+    { id: 'x3',      name: '3倍ぬい',        cost: 12, kind: 'sew',  table: 'x3',    shape: [[0, 0]], lv: 33 },
+    { id: 'shift',   name: 'ぬいパワーシフト', cost: 7, kind: 'util', lv: 38 },
+    { id: 'shitsuke', name: 'しつけがけ',    cost: 13, kind: 'util', target: true, lv: 47 },
+    { id: 'maki',    name: '巻きこみぬい',   cost: 13, kind: 'sew',  table: 'makiC', shape: null, lv: 52 }, // 中心1.5倍+周囲4マス0.75倍
+    { id: 'hankagen', name: '半かげんぬい',  cost: 12, kind: 'sew',  table: 'han',   shape: [[0, 0]], lv: 75 },
+    { id: 'midare',  name: 'みだれぬい',     cost: 7,  kind: 'sew',  table: 'nuu',   shape: null, lv: 80 }, // ランダム4マス 2/1/1/0.5倍
+    { id: 'hissatsu', name: '無我の境地',    cost: 0,  kind: 'util', hissatsu: true, lv: 1 },
+  ];
+
+  // ---- 乱数 ----
+  function makeRng(seed) {
+    let s = seed >>> 0 || (Date.now() & 0xffffffff);
+    return function () {
+      s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0;
+      return s / 4294967296;
+    };
+  }
+
+  /* =========================================================
+     State
+     item = {
+       name, part, allow (大成功許容誤差),
+       cells: [{r,c,std}],  // 有効マスと基準値
+       pattern: [powerIdx...], patternLoop: index (以降ループ),
+       cloth: 'none'|'regen'|'rainbow'|'pink',
+       randomEqual: true // ？の抽選(5種等確率)
+     }
+     ========================================================= */
+
+  function createState(item, opts) {
+    opts = opts || {};
+    const cells = item.cells.map(c => ({
+      r: c.r, c: c.c, std: c.std, dmg: 0, shitsuke: false,
+    }));
+    return {
+      item: item,
+      cells: cells,
+      turn: 1,                    // 現在ターン(1始まり)
+      focus: opts.focus != null ? opts.focus : 100,
+      focusMax: opts.focus != null ? opts.focus : 100,
+      baseCrit: opts.baseCrit != null ? opts.baseCrit : 4.6 + 1.0, // 光★3 + Lv補正 目安(%)
+      seishin: 0,                 // 精神統一 残ターン
+      hissatsuCharged: !!opts.hissatsuCharged,
+      hissatsuActive: false,
+      shiftPending: false,        // 次パワーがシフト抽選待ち
+      forcedNext: null,           // シフトで確定した次パワー
+      resolvedRandom: {},         // ？を解決した実パワー {turn:powerIdx}
+      pinkCell: -1,               // 今ターン光っているマスindex(-1なし)
+      finished: false,
+      log: [],
+    };
+  }
+
+  // パターン上のパワー(未解決の？含む)
+  function patternPowerAt(item, turn) {
+    const p = item.pattern;
+    if (!p || !p.length) return POWER.NORMAL;
+    if (turn <= p.length) return p[turn - 1];
+    const loopStart = Math.min(item.patternLoop != null ? item.patternLoop : 0, p.length - 1);
+    const loopLen = p.length - loopStart;
+    return p[loopStart + ((turn - 1 - loopStart) % loopLen)];
+  }
+
+  // 実効パワー（？解決・シフト確定を反映）。resolve=trueなら？を抽選して確定
+  function powerAt(st, turn, rng, resolve) {
+    if (st.forcedNextTurn === turn && st.forcedNext != null) return st.forcedNext;
+    if (st.resolvedRandom[turn] != null) return st.resolvedRandom[turn];
+    let p = patternPowerAt(st.item, turn);
+    if (p === POWER.RANDOM) {
+      if (resolve && rng) {
+        const v = Math.floor(rng() * 5);
+        st.resolvedRandom[turn] = v;
+        return v;
+      }
+      return POWER.RANDOM;
+    }
+    return p;
+  }
+
+  // 精神統一適用後の「このターンのパワー」
+  function currentPower(st, rng, resolve) {
+    if (st.heldPower != null && st.seishin > 0) return st.heldPower;
+    return powerAt(st, st.turn, rng, resolve);
+  }
+  function nextPowerPreview(st) {
+    if (st.seishin > 1 && st.heldPower != null) return st.heldPower;
+    if (st.forcedNextTurn === st.turn + 1 && st.forcedNext != null) return st.forcedNext;
+    if (st.resolvedRandom[st.turn + 1] != null) return st.resolvedRandom[st.turn + 1];
+    return patternPowerAt(st.item, st.turn + 1);
+  }
+
+  // ---- 布特性 ----
+  function clothPhase(st) {
+    // 4の倍数ターンに効果。虹布: 8n-4=集中半減 / 8n=会心アップ
+    const t = st.turn;
+    const cloth = st.item.cloth;
+    if (t % 4 !== 0 || cloth === 'none' || !cloth) return null;
+    if (cloth === 'rainbow') return (t % 8 === 4) ? 'rainbowHalf' : 'rainbowCrit';
+    if (cloth === 'pink') return 'pinkGlow';
+    if (cloth === 'regen') return 'regenTurn'; // ターン終了時に回復
+    return null;
+  }
+
+  function effectiveCost(st, baseCost) {
+    const ph = clothPhase(st);
+    if (ph === 'rainbowHalf') return Math.ceil(baseCost * 0.5);
+    if (ph === 'rainbowCrit') return Math.ceil(baseCost * 1.5);
+    return baseCost;
+  }
+
+  // ---- 会心率 (%) ----
+  function critRate(st, skill, cellIdx) {
+    const ph = clothPhase(st);
+    let situ = 1;
+    if (skill && skill.critMul) situ = skill.critMul;          // ねらいぬい 8倍
+    if (ph === 'rainbowCrit') situ = (skill && skill.critMul) ? 15 : 7;  // 虹布 7倍(ねらい重複時15倍)
+    if (ph === 'pinkGlow' && cellIdx === st.pinkCell) situ = (skill && skill.critMul) ? 13 : 5; // ピンク布 5倍(重複13倍)
+    let rate = st.baseCrit * situ;
+    if (st.hissatsuActive) rate *= 2;
+    const pw = st._actingPower;
+    if (pw === POWER.CRIT2) rate += st.baseCrit; // 会心×2は基礎会心率を加算
+    return Math.min(100, rate);
+  }
+
+  // ---- ダメージ適用（会心・しつけ・ピンク・基準値ピタ止め処理込み） ----
+  function applyHit(st, cell, cellIdx, rawDmg, skill, rng, forcedCrit, forcedRollIsCrit) {
+    let dmg = rawDmg;
+    let mult = 1;
+    if (cell.shitsuke) { mult *= 2; cell.shitsuke = false; }
+    if (clothPhase(st) === 'pinkGlow' && cellIdx === st.pinkCell) mult *= 2;
+    dmg = rawDmg * mult;
+    let crit = false;
+    if (skill && skill.kind === 'sew') {
+      const rate = critRate(st, skill, cellIdx) / 100;
+      crit = forcedRollIsCrit != null ? forcedRollIsCrit : (rng ? rng() < rate : false);
+      if (forcedCrit != null) crit = forcedCrit;
+      if (crit) {
+        const critDmg = dmg * 2;
+        if (cell.dmg + critDmg >= cell.std) {
+          dmg = Math.max(0, cell.std - cell.dmg); // 基準値ぴったりで止まる
+        } else {
+          dmg = critDmg;
+        }
+      }
+    }
+    cell.dmg += dmg;
+    return { dealt: dmg, crit: crit };
+  }
+
+  function applyHeal(st, cell, rawHeal, useShitsuke) {
+    let heal = rawHeal;
+    if (useShitsuke && cell.shitsuke) { heal *= 2; cell.shitsuke = false; }
+    const actual = Math.min(cell.dmg, heal);
+    cell.dmg -= actual;
+    return actual;
+  }
+
+  // ---- ターン終了処理 ----
+  function endTurn(st, rng) {
+    const ph = clothPhase(st);
+    let regen = null;
+    if (ph === 'regenTurn') {
+      // 赤マス(超過5以上)のうち超過割合最大 → なければ白マス(不足5以上)のうちダメージ割合最大
+      let best = -1, bestRatio = -1, red = false;
+      st.cells.forEach((c, i) => {
+        const err = c.dmg - c.std;
+        if (err >= 5) {
+          const ratio = c.dmg / c.std;
+          if (!red || ratio > bestRatio) { red = true; best = i; bestRatio = ratio; }
+        }
+      });
+      if (best < 0) {
+        st.cells.forEach((c, i) => {
+          const err = c.dmg - c.std;
+          if (err < -4 && c.dmg > 0) {
+            const ratio = c.dmg / c.std;
+            if (ratio > bestRatio) { best = i; bestRatio = ratio; }
+          }
+        });
+      }
+      if (best >= 0) {
+        const heal = REGEN_HEAL[Math.floor((rng ? rng() : Math.random()) * 5)];
+        const actual = applyHeal(st, st.cells[best], heal, false);
+        regen = { cell: best, heal: actual };
+      }
+    }
+    // ターン進行
+    st.turn += 1;
+    if (st.seishin > 0) st.seishin -= 1;
+    if (st.seishin === 0) st.heldPower = null;
+    st.pinkCell = -1;
+    // 新ターンがピンク布グロウなら対象マス抽選（白マス=誤差-5以下から等確率）
+    if (clothPhase(st) === 'pinkGlow') {
+      const whites = [];
+      st.cells.forEach((c, i) => { if (c.dmg - c.std < -4) whites.push(i); });
+      if (whites.length) st.pinkCell = whites[Math.floor((rng ? rng() : Math.random()) * whites.length)];
+    }
+    // ひっさつチャージ抽選(低確率)
+    if (!st.hissatsuCharged && !st.hissatsuActive && rng && rng() < (st.hissatsuChance || 0.02)) {
+      st.hissatsuCharged = true;
+      st.log.push({ t: st.turn, msg: 'ひっさつチャージ！' });
+    }
+    return regen;
+  }
+
+  // ---- 行動 ----
+  // opts: { targets:[cellIdx], forcedRolls:[dmg], forcedCrits:[bool] } forced系はサポートモード用
+  function act(st, skillId, opts, rng) {
+    opts = opts || {};
+    const skill = st.skillDefs ? st.skillDefs.find(s => s.id === skillId) : SKILLS.find(s => s.id === skillId);
+    if (!skill) throw new Error('unknown skill ' + skillId);
+    const cost = effectiveCost(st, skill.cost);
+    if (skill.hissatsu) {
+      if (!st.hissatsuCharged) return { ok: false, reason: 'ひっさつ未チャージ' };
+    } else if (st.focus < cost) {
+      return { ok: false, reason: '集中力不足' };
+    }
+    const pw = currentPower(st, rng, true);
+    st._actingPower = pw;
+    const result = { ok: true, skill: skillId, power: pw, cost: skill.hissatsu ? 0 : cost, hits: [], turn: st.turn };
+
+    if (skill.kind === 'util') {
+      if (skillId === 'seishin') {
+        st.heldPower = pw;
+        st.seishin = 4; // このターン終了で-1 → 以後3ターン保持
+      } else if (skillId === 'shift') {
+        // 次ターンのパワーを現在以外の4種から等確率
+        let cand = [POWER.WEAK, POWER.NORMAL, POWER.STRONG, POWER.MAX, POWER.CRIT2].filter(p => p !== pw);
+        let chosen;
+        if (opts.forcedShift != null) chosen = opts.forcedShift;
+        else chosen = cand[Math.floor((rng ? rng() : Math.random()) * 4)];
+        st.forcedNext = chosen;
+        st.forcedNextTurn = st.turn + 1;
+        result.shifted = chosen;
+      } else if (skillId === 'shitsuke') {
+        const idx = opts.targets && opts.targets[0];
+        if (idx == null) return { ok: false, reason: '対象未指定' };
+        st.cells[idx].shitsuke = true;
+        result.hits.push({ cell: idx, shitsuke: true });
+      } else if (skillId === 'hissatsu') {
+        st.hissatsuCharged = false;
+        st.hissatsuActive = true;
+      }
+      if (!skill.hissatsu) st.focus -= cost;
+      result.regen = endTurn(st, rng);
+      return result;
+    }
+
+    // みだれぬい: 重複なしランダム4マス、2.0/1.0/1.0/0.5倍
+    if (skillId === 'midare') {
+      const rowIdxM = powRow(pw);
+      if (opts.forcedDeltas) { // サポートモード: 実測増加量を直接適用
+        opts.forcedDeltas.forEach(fd => {
+          const cell = st.cells[fd.cell];
+          cell.dmg += fd.delta;
+          if (cell.shitsuke && fd.delta > 0) cell.shitsuke = false;
+          result.hits.push({ cell: fd.cell, dmg: fd.delta });
+        });
+      } else {
+        let picks;
+        if (opts.midareCells) picks = opts.midareCells.slice();
+        else {
+          const pool = st.cells.map((_, i) => i);
+          picks = [];
+          const n = Math.min(4, pool.length);
+          for (let k = 0; k < n; k++) {
+            const j = Math.floor((rng ? rng() : Math.random()) * pool.length);
+            picks.push(pool.splice(j, 1)[0]);
+          }
+        }
+        picks.forEach((idx, k) => {
+          const tbl = T[MIDARE_TABLES[Math.min(k, 3)]][rowIdxM];
+          let roll;
+          if (opts.forcedRolls && opts.forcedRolls[k] != null) roll = opts.forcedRolls[k];
+          else roll = tbl[Math.floor((rng ? rng() : Math.random()) * 7)];
+          const fc = opts.forcedCrits ? opts.forcedCrits[k] : null;
+          const hit = applyHit(st, st.cells[idx], idx, roll, skill, rng, null, fc);
+          result.hits.push({ cell: idx, dmg: hit.dealt, roll: roll, crit: hit.crit, mult: MIDARE_MULTS[Math.min(k, 3)] });
+        });
+      }
+      st.focus -= cost;
+      result.regen = endTurn(st, rng);
+      return result;
+    }
+
+    // 対象マス列挙
+    let targetIdxs;
+    if (skillId === 'maki') {
+      const center = opts.targets[0];
+      const cc = st.cells[center];
+      targetIdxs = [center];
+      st.cells.forEach((c, i) => {
+        if (i !== center && Math.abs(c.r - cc.r) + Math.abs(c.c - cc.c) === 1) targetIdxs.push(i); // 周囲4マス(上下左右)
+      });
+    } else {
+      targetIdxs = opts.targets;
+    }
+    if (!targetIdxs || !targetIdxs.length) return { ok: false, reason: '対象未指定' };
+
+    const rowIdx = powRow(pw);
+    targetIdxs.forEach((idx, k) => {
+      const cell = st.cells[idx];
+      const isCenter = (skillId !== 'maki') || k === 0;
+      const tableName = skillId === 'maki' ? (isCenter ? 'makiC' : 'makiA') : skill.table;
+      const tbl = T[tableName][rowIdx];
+      let roll;
+      if (opts.forcedRolls && opts.forcedRolls[k] != null) roll = opts.forcedRolls[k];
+      else roll = tbl[Math.floor((rng ? rng() : Math.random()) * 7)];
+      if (skill.kind === 'heal') {
+        const actual = applyHeal(st, cell, roll, true);
+        result.hits.push({ cell: idx, heal: actual, roll: roll });
+      } else {
+        const fc = opts.forcedCrits ? opts.forcedCrits[k] : null;
+        const hit = applyHit(st, cell, idx, roll, skill, rng, null, fc);
+        result.hits.push({ cell: idx, dmg: hit.dealt, roll: roll, crit: hit.crit });
+      }
+    });
+
+    st.focus -= cost;
+    result.regen = endTurn(st, rng);
+    return result;
+  }
+
+  // ---- 仕上げ判定 ----
+  function finishResult(st) {
+    let total = 0, allZero = true;
+    st.cells.forEach(c => {
+      const e = Math.abs(c.dmg - c.std);
+      total += e;
+      if (e !== 0) allZero = false;
+    });
+    const allow = st.item.allow != null ? st.item.allow : Math.max(0, st.cells.length - 2);
+    let stars;
+    if (total <= allow) stars = 3;
+    else if (total <= allow * 2 + 2) stars = 2;
+    else if (total <= allow * 4 + 6) stars = 1;
+    else stars = 0;
+    return { totalError: total, allow: allow, stars: stars, big: total <= allow, perfect: allZero };
+  }
+
+  /* =========================================================
+     解析・サポート
+     ========================================================= */
+
+  // ある残り値remに対し、指定パワー・特技1発で誤差0になる確率
+  function zeroProb(rem, tableName, powerIdx) {
+    const tbl = T[tableName][powRow(powerIdx)];
+    let hit = 0;
+    for (const v of tbl) {
+      if (tableName === 'hogushi') { if (-v === rem || (rem < 0 && v >= -rem)) hit++; }
+      else if (v === rem) hit++;
+    }
+    return hit / 7;
+  }
+
+  // 残り値の逆引き: rem を出せる (パワー,特技) と確率一覧
+  function lookupMoves(rem) {
+    const out = [];
+    const sewTables = ['nuu', 'kagen', 'x2', 'x3', 'makiC', 'makiA'];
+    for (let p = 0; p < 4; p++) {
+      for (const tn of sewTables) {
+        const tbl = T[tn][p];
+        const hit = tbl.filter(v => v === rem).length;
+        if (hit) out.push({ power: p, table: tn, prob: hit / 7 });
+      }
+      if (rem < 0) {
+        const tbl = T.hogushi[p];
+        const hit = tbl.filter(v => v === -rem).length;
+        if (hit) out.push({ power: p, table: 'hogushi', prob: hit / 7 });
+      }
+    }
+    if (rem < 0) {
+      const hit = REGEN_HEAL.filter(v => v === -rem).length;
+      if (hit) out.push({ power: -1, table: 'regen', prob: hit / 5 });
+    }
+    out.sort((a, b) => b.prob - a.prob);
+    return out;
+  }
+
+  // ---- 局面評価（ヒューリスティック） ----
+  // 各マスの残り値の「質」: 弱パワー系で誤差0に収束できる確率の近似
+  const GOOD = {}; // rem -> score(0..1)
+  (function buildGood() {
+    // 1手で誤差0にできる最大確率（弱/普/強/最 × 全調整手）
+    for (let rem = -40; rem <= 120; rem++) {
+      let best = 0;
+      for (let p = 0; p < 4; p++) {
+        for (const tn of ['nuu', 'kagen', 'x2', 'x3', 'han']) {
+          const pr = T[tn][p].filter(v => v === rem).length / 7;
+          if (pr > best) best = pr;
+        }
+        if (rem < 0) {
+          const pr = T.hogushi[p].filter(v => v >= -rem ? v === -rem || false : false).length / 7;
+          // ほぐしは超過分ちょうど: v === -rem、v > -rem は下限止めで誤差0
+          const pr2 = T.hogushi[p].filter(v => v === -rem).length / 7;
+          if (pr2 > best) best = pr2;
+        }
+      }
+      GOOD[rem] = best;
+    }
+  })();
+
+  function cellScore(rem) {
+    if (rem === 0) return 1.0;
+    if (rem < 0) { // 超過
+      const g = GOOD[rem] || 0;
+      return Math.max(0, g * 0.9 - Math.min(0.3, Math.abs(rem) * 0.004));
+    }
+    const g = GOOD[rem] || 0;
+    // 2手以上先も見る簡易補正: 大きい残り値は等倍・倍縫いで良数値に落とせる
+    let reach = 0;
+    if (rem > 9) {
+      for (let p = 0; p < 4; p++) {
+        for (const tn of ['nuu', 'kagen', 'x2', 'x3', 'han']) {
+          const tbl = T[tn][p];
+          let s = 0;
+          for (const v of tbl) {
+            const r2 = rem - v;
+            if (r2 >= 0) s += (r2 === 0 ? 1 : (GOOD[r2] || 0));
+          }
+          reach = Math.max(reach, s / 7);
+        }
+      }
+    }
+    return Math.max(g, reach * 0.92);
+  }
+
+  function evalState(st) {
+    let score = 0;
+    st.cells.forEach(c => {
+      const rem = c.std - c.dmg;
+      const err = Math.abs(rem);
+      score += cellScore(rem) * 10;
+      score -= Math.min(err, 30) * 0.35;         // 誤差そのものへのペナルティ
+    });
+    score += Math.min(st.focus, 60) * 0.06;      // 集中力の価値
+    return score;
+  }
+
+  // ---- 候補手列挙 ----
+  function legalActions(st) {
+    const acts = [];
+    const skills = st.skillDefs || SKILLS;
+    const grid = {};
+    st.cells.forEach((c, i) => { grid[c.r + ',' + c.c] = i; });
+    for (const sk of skills) {
+      if (sk.hissatsu) { if (st.hissatsuCharged) acts.push({ skill: sk.id, targets: [] }); continue; }
+      if (st.lvLimit && sk.lv > st.lvLimit) continue;
+      if (effectiveCost(st, sk.cost) > st.focus) continue;
+      if (sk.kind === 'util') {
+        if (sk.id === 'shitsuke') {
+          st.cells.forEach((c, i) => { if (!c.shitsuke) acts.push({ skill: sk.id, targets: [i] }); });
+        } else if (sk.id === 'seishin') {
+          if (st.seishin <= 1) acts.push({ skill: sk.id, targets: [] });
+        } else acts.push({ skill: sk.id, targets: [] });
+        continue;
+      }
+      if (sk.id === 'maki') {
+        st.cells.forEach((c, i) => acts.push({ skill: sk.id, targets: [i] }));
+        continue;
+      }
+      if (sk.id === 'midare') {
+        acts.push({ skill: sk.id, targets: [] });
+        continue;
+      }
+      if (sk.kind === 'heal') {
+        st.cells.forEach((c, i) => { if (c.dmg > 0) acts.push({ skill: sk.id, targets: [i] }); });
+        continue;
+      }
+      // 形状特技: 全有効マスに形が収まる配置のみ
+      st.cells.forEach((c, i) => {
+        const tg = [];
+        let ok = true;
+        for (const [dr, dc] of sk.shape) {
+          const j = grid[(c.r + dr) + ',' + (c.c + dc)];
+          if (j == null) { ok = false; break; }
+          tg.push(j);
+        }
+        if (ok) acts.push({ skill: sk.id, targets: tg });
+      });
+    }
+    return acts;
+  }
+
+  function cloneState(st) {
+    return {
+      item: st.item,
+      cells: st.cells.map(c => ({ r: c.r, c: c.c, std: c.std, dmg: c.dmg, shitsuke: c.shitsuke })),
+      turn: st.turn, focus: st.focus, focusMax: st.focusMax,
+      baseCrit: st.baseCrit, seishin: st.seishin, heldPower: st.heldPower,
+      hissatsuCharged: st.hissatsuCharged, hissatsuActive: st.hissatsuActive,
+      forcedNext: st.forcedNext, forcedNextTurn: st.forcedNextTurn,
+      resolvedRandom: Object.assign({}, st.resolvedRandom),
+      pinkCell: st.pinkCell, finished: st.finished, log: [],
+      skillDefs: st.skillDefs, lvLimit: st.lvLimit, hissatsuChance: 0,
+    };
+  }
+
+  // ---- 推奨AI: サンプリング期待値探索 ----
+  function recommend(st, opts) {
+    opts = opts || {};
+    const depth = opts.depth || 2;
+    const samples = opts.samples || 24;
+    const timeBudget = opts.timeBudget || 1500;
+    const t0 = Date.now();
+    const rng = makeRng(opts.seed || 12345);
+
+    function rollout(state, d) {
+      if (d <= 0 || state.focus < 5) return evalState(state);
+      const acts = legalActions(state).filter(a => a.skill !== 'hissatsu');
+      if (!acts.length) return evalState(state);
+      // 貪欲: 1サンプルで各手を試し最良を選ぶ（軽量）
+      let best = -Infinity;
+      const sub = acts.length > 10 ? pickTop(state, acts, 6) : acts;
+      for (const a of sub) {
+        const s2 = cloneState(state);
+        try { act(s2, a.skill, { targets: a.targets }, rng); } catch (e) { continue; }
+        const v = rollout(s2, d - 1);
+        if (v > best) best = v;
+      }
+      return best === -Infinity ? evalState(state) : best;
+    }
+
+    function pickTop(state, acts, n) {
+      // 1サンプル簡易評価で上位n手
+      const scored = acts.map(a => {
+        const s2 = cloneState(state);
+        try { act(s2, a.skill, { targets: a.targets }, rng); } catch (e) { return { a, v: -1e9 }; }
+        return { a, v: evalState(s2) };
+      });
+      scored.sort((x, y) => y.v - x.v);
+      return scored.slice(0, n).map(s => s.a);
+    }
+
+    const actions = legalActions(st);
+    const results = [];
+    for (const a of actions) {
+      if (Date.now() - t0 > timeBudget) break;
+      let sum = 0, n = 0;
+      let zeroSum = 0;
+      for (let s = 0; s < samples; s++) {
+        const s2 = cloneState(st);
+        try {
+          const r = act(s2, a.skill, { targets: a.targets }, rng);
+          if (!r.ok) { sum = -Infinity; break; }
+        } catch (e) { sum = -Infinity; break; }
+        sum += depth > 1 ? rollout(s2, depth - 1) : evalState(s2);
+        let z = 0;
+        s2.cells.forEach(c => { if (c.dmg === c.std) z++; });
+        zeroSum += z;
+        n++;
+        if (Date.now() - t0 > timeBudget) break;
+      }
+      if (n > 0 && sum > -Infinity) {
+        results.push({ action: a, value: sum / n, avgZero: zeroSum / n });
+      }
+    }
+    results.sort((x, y) => y.value - x.value);
+    return results;
+  }
+
+  // ---- 1手の結果分布（厳密） ----
+  function actionDistribution(st, action) {
+    const skills = st.skillDefs || SKILLS;
+    const sk = skills.find(s => s.id === action.skill);
+    if (!sk || sk.kind === 'util') return null;
+    if (sk.id === 'midare') return { midare: true, cost: effectiveCost(st, sk.cost) };
+    const pw = currentPower(st, null, false);
+    if (pw === POWER.RANDOM) return { random: true };
+    const rowIdx = powRow(pw);
+    let targets;
+    if (sk.id === 'maki') {
+      const center = action.targets[0];
+      const cc = st.cells[center];
+      targets = [center];
+      st.cells.forEach((c, i) => {
+        if (i !== center && Math.abs(c.r - cc.r) + Math.abs(c.c - cc.c) === 1) targets.push(i);
+      });
+    } else targets = action.targets;
+
+    const perCell = targets.map((idx, k) => {
+      const cell = st.cells[idx];
+      const tableName = sk.id === 'maki' ? (k === 0 ? 'makiC' : 'makiA') : sk.table;
+      const tbl = T[tableName][rowIdx];
+      const rem = cell.std - cell.dmg;
+      const outcomes = {};
+      let mult = 1;
+      if (cell.shitsuke) mult *= 2;
+      if (clothPhase(st) === 'pinkGlow' && idx === st.pinkCell) mult *= 2;
+      for (const v of tbl) {
+        let newRem;
+        if (sk.kind === 'heal') {
+          const heal = Math.min(cell.dmg, v * mult);
+          newRem = rem + heal;
+        } else {
+          newRem = rem - v * mult;
+        }
+        outcomes[newRem] = (outcomes[newRem] || 0) + 1 / 7;
+      }
+      const critRateV = sk.kind === 'sew' ? critRate(Object.assign({}, st, { _actingPower: pw }), sk, idx) : 0;
+      let zeroP = outcomes[0] || 0;
+      return { cell: idx, rem: rem, outcomes: outcomes, zeroProb: zeroP, critRate: critRateV, values: tbl.slice() };
+    });
+    return { power: pw, cost: effectiveCost(st, sk.cost), perCell: perCell };
+  }
+
+  const API = {
+    POWER, POWER_NAMES, POWER_SHORT, T, REGEN_HEAL, SKILLS,
+    makeRng, createState, act, endTurn, finishResult, patternPowerAt, powerAt,
+    currentPower, nextPowerPreview, clothPhase, effectiveCost, critRate,
+    legalActions, cloneState, recommend, lookupMoves, actionDistribution, evalState, zeroProb,
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+  else global.SaihouEngine = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>/* さいほう工房 — アプリ層 */
+(function () {
+  'use strict';
+  const E = window.SaihouEngine;
+  const $ = (s, el) => (el || document).querySelector(s);
+  const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+  const PW_CLASS = ['pw-weak', 'pw-normal', 'pw-strong', 'pw-max', 'pw-crit', 'pw-rand'];
+  const SVG = {
+    loop: '<svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3.5v4.3h-4.3"/></svg>',
+    check: '<svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="m4.5 12.5 5 5L19.5 7"/></svg>',
+    star: '<svg class="svgi star-f" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.6l-5.8 3 1.1-6.4L2.6 9.6l6.5-.9L12 2.8Z"/></svg>',
+    starEmpty: '<svg class="svgi star-e" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.6l-5.8 3 1.1-6.4L2.6 9.6l6.5-.9L12 2.8Z"/></svg>',
+    plus: '<svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  };
+
+
+  // ---------- 永続化 ----------
+  const store = (() => {
+    let mem = {};
+    let usable = false;
+    try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); usable = true; } catch (e) {}
+    return {
+      get(k, d) {
+        try { if (usable) { const v = localStorage.getItem('saihou:' + k); return v == null ? d : JSON.parse(v); } } catch (e) {}
+        return k in mem ? mem[k] : d;
+      },
+      set(k, v) {
+        mem[k] = v;
+        try { if (usable) localStorage.setItem('saihou:' + k, JSON.stringify(v)); } catch (e) {}
+      },
+      usable,
+    };
+  })();
+
+  // ---------- プリセット商材 ----------
+  function cellsRect(rows, cols, std) {
+    const out = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) out.push({ r, c, std: Array.isArray(std) ? std[r * cols + c] : std });
+    return out;
+  }
+  // 頭装備: 上段中央1マス + 下段3マス
+  function cellsHead(top, bottom) {
+    return [{ r: 0, c: 1, std: top }, { r: 1, c: 0, std: bottom[0] }, { r: 1, c: 1, std: bottom[1] }, { r: 1, c: 2, std: bottom[2] }];
+  }
+  // 縫い手順（実測・セット内共通）弱0 普1 強2 最3 会4 ？5
+  const PAT_A = [0, 5, 3, 5, 5, 1, 1, 2, 5]; // 叡聖・月影・ノクトル
+  const PAT_B = [1, 3, 5, 2, 5, 0, 5, 5];    // アンティク・烈風・妖精郷
+  const SRC = '実測データ（画像より）。パターンのループ開始位置は要確認（既定=先頭）。';
+  function P(id, name, part, cloth, pattern, cells) {
+    return { id, name, part, cloth, pattern: pattern.slice(), patternLoop: 0, allow: Math.max(0, cells.length - 2), cells, note: SRC };
+  }
+  const PRESET_ITEMS = [
+    // ---- 叡聖の博士服（体下はデータ非公開のため未収録） ----
+    P('eisei_head', '叡聖の博士服・頭', '頭', 'rainbow', PAT_A, cellsHead(450, [140, 300, 400])),
+    P('eisei_top', '叡聖の博士服・体上', '体上', 'rainbow', PAT_A, cellsRect(3, 3, [240, 150, 170, 130, 110, 90, 80, 130, 110])),
+    P('eisei_arm', '叡聖の博士服・腕', '腕', 'rainbow', PAT_A, cellsRect(2, 3, [180, 130, 350, 230, 100, 120])),
+    P('eisei_foot', '叡聖の博士服・足', '足', 'rainbow', PAT_A, cellsRect(2, 2, [450, 240, 130, 410])),
+    // ---- 月影の装束 ----
+    P('tsukikage_head', '月影の装束・頭', '頭', 'pink', PAT_A, cellsHead(500, [380, 130, 440])),
+    P('tsukikage_top', '月影の装束・体上', '体上', 'pink', PAT_A, cellsRect(3, 3, [130, 85, 110, 80, 110, 160, 150, 100, 180])),
+    P('tsukikage_btm', '月影の装束・体下', '体下', 'pink', PAT_A, cellsRect(3, 2, [150, 270, 320, 90, 120, 280])),
+    P('tsukikage_arm', '月影の装束・腕', '腕', 'pink', PAT_A, cellsRect(2, 3, [340, 100, 320, 180, 150, 170])),
+    P('tsukikage_foot', '月影の装束・足', '足', 'pink', PAT_A, cellsRect(2, 2, [410, 120, 250, 520])),
+    // ---- ノクトルケープ ----
+    P('noctol_head', 'ノクトルケープ・頭', '頭', 'regen', PAT_A, cellsHead(340, [480, 150, 230])),
+    P('noctol_top', 'ノクトルケープ・体上', '体上', 'rainbow', PAT_A, cellsRect(3, 3, [90, 120, 150, 140, 110, 100, 220, 90, 190])),
+    P('noctol_btm', 'ノクトルケープ・体下', '体下', 'regen', PAT_A, cellsRect(3, 2, [160, 170, 90, 210, 270, 160])),
+    P('noctol_arm', 'ノクトルケープ・腕', '腕', 'pink', PAT_A, cellsRect(2, 3, [360, 90, 160, 110, 250, 330])),
+    P('noctol_foot', 'ノクトルケープ・足', '足', 'regen', PAT_A, cellsRect(2, 2, [100, 500, 390, 190])),
+    // ---- アンティクドレス ----
+    P('antique_head', 'アンティクドレス・頭', '頭', 'pink', PAT_B, cellsHead(460, [410, 180, 310])),
+    P('antique_top', 'アンティクドレス・体上', '体上', 'regen', PAT_B, cellsRect(3, 3, [180, 100, 190, 120, 90, 130, 110, 160, 80])),
+    P('antique_btm', 'アンティクドレス・体下', '体下', 'pink', PAT_B, cellsRect(3, 2, [290, 100, 140, 260, 340, 90])),
+    P('antique_arm', 'アンティクドレス・腕', '腕', 'rainbow', PAT_B, cellsRect(2, 3, [140, 350, 130, 190, 90, 230])),
+    P('antique_foot', 'アンティクドレス・足', '足', 'rainbow', PAT_B, cellsRect(2, 2, [120, 250, 470, 360])),
+    // ---- 烈風のころも ----
+    P('reppu_head', '烈風のころも・頭', '頭', 'regen', PAT_B, cellsHead(420, [290, 140, 320])),
+    P('reppu_top', '烈風のころも・体上', '体上', 'regen', PAT_B, cellsRect(3, 3, [100, 150, 100, 140, 120, 90, 170, 90, 150])),
+    P('reppu_btm', '烈風のころも・体下', '体下', 'regen', PAT_B, cellsRect(3, 2, [180, 200, 270, 110, 90, 240])),
+    P('reppu_arm', '烈風のころも・腕', '腕', 'regen', PAT_B, cellsRect(2, 3, [210, 120, 320, 290, 90, 140])),
+    P('reppu_foot', '烈風のころも・足', '足', 'regen', PAT_B, cellsRect(2, 2, [200, 380, 110, 450])),
+    // ---- 妖精郷の舞踏服 ----
+    P('yousei_head', '妖精郷の舞踏服・頭', '頭', 'rainbow', PAT_B, cellsHead(290, [150, 450, 490])),
+    P('yousei_top', '妖精郷の舞踏服・体上', '体上', 'pink', PAT_B, cellsRect(3, 3, [120, 160, 110, 130, 90, 190, 100, 130, 90])),
+    P('yousei_btm', '妖精郷の舞踏服・体下', '体下', 'rainbow', PAT_B, cellsRect(3, 2, [80, 270, 260, 100, 140, 290])),
+    P('yousei_arm', '妖精郷の舞踏服・腕', '腕', 'rainbow', PAT_B, cellsRect(2, 3, [220, 90, 190, 380, 130, 290])),
+    P('yousei_foot', '妖精郷の舞踏服・足', '足', 'pink', PAT_B, cellsRect(2, 2, [510, 140, 210, 490])),
+    // ---- 練習用サンプル ----
+    {
+      id: 'p_kawa_tebukuro', name: '皮のてぶくろ（サンプル）', part: '腕', allow: 2, sample: true,
+      cells: cellsRect(2, 2, 15),
+      pattern: [1, 0, 1, 2, 0, 1], patternLoop: 0, cloth: 'none',
+      note: '基準値15は攻略情報で確認済み。ぬいパワー順は実機で確認して修正してください。',
+    },
+  ];
+
+  // ---------- 設定 ----------
+  const DEFAULT_SETTINGS = {
+    focus: 306, baseCrit: 5.6, hissatsuChance: 2, startHissatsu: false,
+    aiDepth: 2, aiSamples: 24, aiTime: 1800, lvLimit: 0,
+    skillCosts: {},
+  };
+  let settings = Object.assign({}, DEFAULT_SETTINGS, store.get('settings', {}));
+  let items = store.get('items', null);
+  if (!items) { items = PRESET_ITEMS.map(x => JSON.parse(JSON.stringify(x))); store.set('items', items); }
+
+  function skillDefs() {
+    return E.SKILLS.map(s => Object.assign({}, s, settings.skillCosts[s.id] != null ? { cost: settings.skillCosts[s.id] } : {}));
+  }
+
+  // ---------- 画面遷移 ----------
+  const screens = ['home', 'play', 'data', 'lookup', 'settings'];
+  function show(id) {
+    screens.forEach(s => { $('#scr-' + s).classList.toggle('active', s === id); });
+    $$('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.scr === id));
+    if (id === 'home') renderHome();
+    if (id === 'data') renderData();
+    if (id === 'lookup') renderLookup();
+    if (id === 'settings') renderSettings();
+  }
+
+  // =========================================================
+  // ホーム
+  // =========================================================
+  let partFilter = 'すべて';
+  function renderHome() {
+    const pf = $('#part-filter');
+    const parts = ['すべて', '頭', '体上', '体下', '腕', '足'];
+    pf.innerHTML = parts.map(p => `<button class="mini pfb ${p === partFilter ? 'on' : ''}">${p}</button>`).join('');
+    $$('.pfb', pf).forEach(b => b.onclick = () => { partFilter = b.textContent; renderHome(); });
+    const list = $('#item-list');
+    list.innerHTML = '';
+    items.forEach((it, i) => {
+      if (partFilter !== 'すべて' && it.part !== partFilter) return;
+      const el = document.createElement('button');
+      el.className = 'item-card';
+      el.innerHTML = `
+        <div class="ic-name">${esc(it.name)}${it.sample ? '<span class="badge warn">要検証</span>' : ''}</div>
+        <div class="ic-meta">${esc(it.part)} ／ ${it.cells.length}マス ／ 許容誤差 ${it.allow} ／ ${clothName(it.cloth)}</div>`;
+      el.onclick = () => { selectedItem = i; renderHome(); };
+      if (i === selectedItem) el.classList.add('sel');
+      list.appendChild(el);
+    });
+    $('#btn-start-sim').disabled = selectedItem == null;
+    $('#btn-start-support').disabled = selectedItem == null;
+  }
+  let selectedItem = 0;
+  function clothName(c) { return { none: '布特性なし', regen: '再生布', rainbow: '虹布', pink: 'ピンク布' }[c] || c; }
+
+  // =========================================================
+  // プレイ
+  // =========================================================
+  let G = null; // { st, mode:'sim'|'support', history:[], pendingSkill, pendingTargets, rng }
+
+  function startPlay(mode) {
+    const it = items[selectedItem];
+    const st = E.createState(it, {
+      focus: settings.focus,
+      baseCrit: settings.baseCrit,
+      hissatsuCharged: settings.startHissatsu,
+    });
+    st.skillDefs = skillDefs();
+    st.lvLimit = settings.lvLimit > 0 ? settings.lvLimit : null;
+    st.hissatsuChance = mode === 'sim' ? settings.hissatsuChance / 100 : 0;
+    G = { st, mode, history: [], pendingSkill: null, pendingTargets: null, rng: E.makeRng(Date.now() & 0xffffffff), result: null };
+    // ピンク布: turn1が4の倍数になることはないので初期抽選不要
+    show('play');
+    renderPlay();
+  }
+
+  function pushHistory() { G.history.push(E.cloneState(G.st)); if (G.history.length > 60) G.history.shift(); }
+  function undo() {
+    if (!G.history.length) return;
+    G.st = G.history.pop();
+    G.result = null; G.pendingSkill = null; G.pendingTargets = null;
+    renderPlay();
+  }
+
+  function renderPlay() {
+    if (!G) { show('home'); return; }
+    const st = G.st;
+    const scr = $('#scr-play');
+    if (G.result) { renderResult(); return; }
+    $('#play-result').classList.add('hide');
+    $('#play-main').classList.remove('hide');
+
+    // ヘッダ
+    $('#p-item').textContent = st.item.name;
+    $('#p-mode').textContent = G.mode === 'sim' ? 'シミュレーション' : '実機サポート';
+    $('#p-mode').className = 'badge ' + (G.mode === 'sim' ? 'sim' : 'sup');
+    $('#p-turn').textContent = st.turn;
+    $('#p-focus').textContent = st.focus;
+    const fp = Math.max(0, Math.min(100, st.focus / st.focusMax * 100));
+    $('#p-focusbar').style.width = fp + '%';
+
+    // ぬいパワー
+    const cur = E.currentPower(st, null, false);
+    const nxt = E.nextPowerPreview(st);
+    setPowerChip($('#pw-now'), cur);
+    setPowerChip($('#pw-next'), nxt);
+    $('#pw-seishin').classList.toggle('hide', !(st.seishin > 0));
+    $('#pw-seishin').textContent = `精神統一 残${st.seishin}`;
+    if (G.mode === 'support' && cur === E.POWER.RANDOM) {
+      $('#rand-resolve').classList.remove('hide');
+    } else $('#rand-resolve').classList.add('hide');
+
+    // 布特性
+    const ph = E.clothPhase(st);
+    const fx = $('#p-clothfx');
+    fx.className = 'clothfx';
+    if (ph === 'rainbowHalf') { fx.textContent = '虹布：消費集中 半減ターン'; fx.classList.add('fx-half'); }
+    else if (ph === 'rainbowCrit') { fx.textContent = '虹布：会心アップ／消費1.5倍ターン'; fx.classList.add('fx-crit'); }
+    else if (ph === 'pinkGlow') { fx.textContent = 'ピンク布：発光ターン（対象マス 威力2倍＆会心UP）'; fx.classList.add('fx-pink'); }
+    else if (ph === 'regenTurn') { fx.textContent = '再生布：このターン終了時に回復'; fx.classList.add('fx-regen'); }
+    else {
+      const c = st.item.cloth;
+      if (c && c !== 'none') {
+        const next4 = 4 - (st.turn % 4 || 4) + st.turn + (st.turn % 4 === 0 ? 0 : 0);
+        const rem = st.turn % 4 === 0 ? 0 : 4 - st.turn % 4;
+        fx.textContent = `${clothName(c)}（次の効果まで ${rem === 0 ? 0 : rem} ターン）`;
+      } else fx.textContent = '布特性なし';
+    }
+
+    // ひっさつ
+    $('#p-hissatsu').classList.toggle('hide', !(st.hissatsuCharged || st.hissatsuActive));
+    $('#p-hissatsu').textContent = st.hissatsuActive ? '必殺効果中：会心率2倍' : 'ひっさつチャージ中！';
+
+    renderGrid();
+    renderCommands();
+    renderInsight();
+  }
+
+  function setPowerChip(el, p) {
+    el.textContent = E.POWER_NAMES[p] || '—';
+    el.className = 'pwchip ' + (PW_CLASS[p] || '');
+  }
+
+  function renderGrid() {
+    const st = G.st;
+    const grid = $('#cloth');
+    grid.innerHTML = '';
+    const rows = Math.max(...st.cells.map(c => c.r)) + 1;
+    const cols = Math.max(...st.cells.map(c => c.c)) + 1;
+    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    const map = {};
+    st.cells.forEach((c, i) => (map[c.r + ',' + c.c] = i));
+    const ph = E.clothPhase(st);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const i = map[r + ',' + c];
+        const cell = document.createElement('div');
+        if (i == null) { cell.className = 'cell empty'; grid.appendChild(cell); continue; }
+        const cd = st.cells[i];
+        const err = cd.dmg - cd.std;
+        cell.className = 'cell';
+        if (err === 0 && cd.dmg > 0) cell.classList.add('c-zero');
+        else if (Math.abs(err) <= 4) cell.classList.add('c-near');
+        else if (err > 4) cell.classList.add('c-over');
+        if (cd.shitsuke) cell.classList.add('c-shitsuke');
+        if (ph === 'pinkGlow' && st.pinkCell === i) cell.classList.add('c-glow');
+        if (G.pendingTargets && G.pendingTargets.includes(i)) cell.classList.add('c-target');
+        const rem = cd.std - cd.dmg;
+        cell.innerHTML = `
+          <div class="c-dmg">${cd.dmg}</div>
+          <div class="c-std">／${cd.std}</div>
+          <div class="c-rem ${rem < 0 ? 'neg' : rem === 0 ? 'zero' : ''}">${rem === 0 ? '±0' : rem > 0 ? '残 ' + rem : '超過 ' + (-rem)}</div>
+          ${cd.shitsuke ? '<div class="c-tag">しつけ</div>' : ''}`;
+        cell.onclick = () => onCellTap(i);
+        grid.appendChild(cell);
+      }
+    }
+  }
+
+  function onCellTap(i) {
+    const st = G.st;
+    if (G.pendingSkill) {
+      const sk = skillDefs().find(s => s.id === G.pendingSkill);
+      if (sk.id === 'maki') {
+        const base = st.cells[i];
+        const tg = [i];
+        st.cells.forEach((c, k) => {
+          if (k !== i && Math.abs(c.r - base.r) + Math.abs(c.c - base.c) === 1) tg.push(k);
+        });
+        G.pendingTargets = tg;
+      } else if (sk.kind === 'heal' || sk.id === 'shitsuke' || (sk.shape && sk.shape.length === 1)) {
+        G.pendingTargets = [i];
+      } else if (sk.shape) {
+        // 形状配置: タップマスを基点に有効配置を探す（基点は shape[0]…順に試す）
+        const map = {};
+        st.cells.forEach((c, k) => (map[c.r + ',' + c.c] = k));
+        const base = st.cells[i];
+        let placed = null;
+        for (let anchor = 0; anchor < sk.shape.length && !placed; anchor++) {
+          const [ar, ac] = sk.shape[anchor];
+          const tg = [];
+          let ok = true;
+          for (const [dr, dc] of sk.shape) {
+            const j = map[(base.r - ar + dr) + ',' + (base.c - ac + dc)];
+            if (j == null) { ok = false; break; }
+            tg.push(j);
+          }
+          if (ok && tg.includes(i)) placed = tg;
+        }
+        if (!placed) { toast('その位置には配置できません'); return; }
+        G.pendingTargets = placed;
+      }
+      renderGrid();
+      renderInsight();
+      $('#btn-exec').disabled = !G.pendingTargets;
+    } else {
+      // 逆引きパネル
+      const cd = st.cells[i];
+      showCellLookup(cd.std - cd.dmg, i);
+    }
+  }
+
+  function renderCommands() {
+    const st = G.st;
+    const wrap = $('#commands');
+    wrap.innerHTML = '';
+    const defs = skillDefs();
+    defs.forEach(sk => {
+      if (sk.hissatsu && !st.hissatsuCharged) return;
+      if (st.lvLimit && sk.lv > st.lvLimit) return;
+      const cost = E.effectiveCost(st, sk.cost);
+      const btn = document.createElement('button');
+      btn.className = 'cmd' + (G.pendingSkill === sk.id ? ' sel' : '') + (sk.kind === 'util' ? ' util' : '') + (sk.kind === 'heal' ? ' heal' : '');
+      const afford = sk.hissatsu ? true : st.focus >= cost;
+      if (!afford) btn.classList.add('poor');
+      btn.innerHTML = `<span class="cmd-n">${sk.name}${sk.unverified ? '<i class="uv">※</i>' : ''}</span><span class="cmd-c">${sk.hissatsu ? '必殺' : cost}</span>`;
+      btn.onclick = () => selectSkill(sk.id);
+      wrap.appendChild(btn);
+    });
+    $('#btn-exec').disabled = !(G.pendingSkill && (G.pendingTargets || isNoTarget(G.pendingSkill)));
+  }
+
+  function isNoTarget(id) { return ['seishin', 'shift', 'hissatsu', 'midare'].includes(id); }
+
+  function selectSkill(id) {
+    if (G.pendingSkill === id) { G.pendingSkill = null; G.pendingTargets = null; }
+    else {
+      G.pendingSkill = id;
+      G.pendingTargets = isNoTarget(id) ? [] : null;
+    }
+    renderCommands();
+    renderGrid();
+    renderInsight();
+  }
+
+  // 実行
+  function execAction() {
+    const st = G.st;
+    const id = G.pendingSkill;
+    if (!id) return;
+    const sk = skillDefs().find(s => s.id === id);
+    const cur = E.currentPower(st, null, false);
+    if (cur === E.POWER.RANDOM && G.mode === 'support') { toast('まず「？」のぬいパワーを確定してください'); return; }
+
+    if (G.mode === 'sim') {
+      pushHistory();
+      const r = E.act(st, id, { targets: G.pendingTargets }, G.rng);
+      if (!r.ok) { G.history.pop(); toast(r.reason); return; }
+      flashResult(r);
+      afterAction(r);
+    } else {
+      // サポートモード: 乱数要素を入力で確定
+      if (sk.kind === 'util') {
+        if (id === 'shift') { openShiftPicker(); return; }
+        pushHistory();
+        const r = E.act(st, id, { targets: G.pendingTargets }, G.rng);
+        if (!r.ok) { G.history.pop(); toast(r.reason); return; }
+        afterAction(r, true);
+      } else if (id === 'midare') {
+        openMidarePicker(sk);
+      } else {
+        openRollPicker(sk);
+      }
+    }
+  }
+
+  function afterAction(r, support) {
+    G.pendingSkill = null; G.pendingTargets = null;
+    // 再生の実測補正（サポート時）
+    if (support && r.regen) {
+      openRegenAdjust(r.regen);
+      return;
+    }
+    // ピンク布グロウ対象の実測補正
+    if (support && E.clothPhase(G.st) === 'pinkGlow') {
+      openGlowPicker();
+      return;
+    }
+    renderPlay();
+  }
+
+  function flashResult(r) {
+    if (!r.hits || !r.hits.length) return;
+    const msg = r.hits.map(h => {
+      if (h.shitsuke) return 'しつけがけ';
+      if (h.heal != null) return `回復 ${h.heal}`;
+      return `${h.dmg}${h.crit ? '（会心！）' : ''}`;
+    }).join(' / ');
+    toast(`${E.POWER_NAMES[r.power]}：${msg}${r.regen ? `　◆再生 -${r.regen.heal}` : ''}`);
+  }
+
+  // ---------- サポート: 実測ロール入力 ----------
+  function openRollPicker(sk) {
+    const st = G.st;
+    const pw = E.currentPower(st, null, false);
+    const dist = E.actionDistribution(st, { skill: sk.id, targets: G.pendingTargets });
+    if (!dist || dist.random) { toast('ぬいパワー未確定です'); return; }
+    const modal = $('#modal');
+    const rowIdx = pw === E.POWER.CRIT2 ? E.POWER.NORMAL : pw;
+    let targets = dist.perCell.map(p => p.cell);
+    let picks = new Array(targets.length).fill(null); // {roll, crit}
+    const body = targets.map((ci, k) => {
+      const cd = st.cells[ci];
+      const tableName = sk.id === 'maki' ? (k === 0 ? 'makiC' : 'makiA') : sk.table;
+      const vals = Array.from(new Set(E.T[tableName][rowIdx]));
+      let mult = 1;
+      if (cd.shitsuke) mult *= 2;
+      if (E.clothPhase(st) === 'pinkGlow' && st.pinkCell === ci) mult *= 2;
+      const chips = vals.map(v => {
+        const eff = sk.kind === 'heal' ? Math.min(cd.dmg, v * mult) : v * mult;
+        return `<button class="chip" data-k="${k}" data-roll="${v}" data-crit="0">${sk.kind === 'heal' ? '-' : '+'}${eff}</button>`;
+      }).join('');
+      const critChips = sk.kind === 'sew' ? vals.map(v => {
+        const base = v * mult;
+        const rem = cd.std - cd.dmg;
+        const eff = (base * 2 >= rem && rem >= 0) ? rem : base * 2;
+        return `<button class="chip crit" data-k="${k}" data-roll="${v}" data-crit="1">会心 +${eff}</button>`;
+      }).join('') : '';
+      return `<div class="roll-cell"><div class="roll-t">マス（${cd.r + 1},${cd.c + 1}）実際に出た数値${mult > 1 ? `<span class="badge warn">×${mult}適用中</span>` : ''}</div>
+        <div class="chips">${chips}</div>${critChips ? `<div class="chips">${critChips}</div>` : ''}</div>`;
+    }).join('');
+    openModal(`${sk.name}（${E.POWER_NAMES[pw]}）の結果を入力`, body, () => {
+      if (picks.some(p => p == null)) { toast('すべてのマスの数値を選んでください'); return false; }
+      pushHistory();
+      const r = E.act(st, sk.id, {
+        targets: G.pendingTargets,
+        forcedRolls: picks.map(p => p.roll),
+        forcedCrits: picks.map(p => p.crit),
+      }, G.rng);
+      if (!r.ok) { G.history.pop(); toast(r.reason); return false; }
+      afterAction(r, true);
+      return true;
+    });
+    $$('#modal .chip').forEach(ch => {
+      ch.onclick = () => {
+        const k = +ch.dataset.k;
+        picks[k] = { roll: +ch.dataset.roll, crit: ch.dataset.crit === '1' };
+        $$('#modal .chip').forEach(o => { if (+o.dataset.k === k) o.classList.remove('on'); });
+        ch.classList.add('on');
+      };
+    });
+  }
+
+  function openMidarePicker(sk) {
+    const st = G.st;
+    const cost = E.effectiveCost(st, sk.cost);
+    const body = `
+      <p class="hint">実機で各マスに増えた数値を入力してください（縫われなかったマスは空欄。会心・しつけ・発光込みの実測値でOK）。</p>
+      <div class="ed-grid">${st.cells.map((c, i) => `
+        <label class="ed-cell">（${c.r + 1},${c.c + 1}）残${c.std - c.dmg}<input type="number" inputmode="numeric" data-i="${i}" placeholder="—"></label>`).join('')}
+      </div>`;
+    openModal(`みだれぬい（消費${cost}）実測入力`, body, () => {
+      const deltas = [];
+      $$('#modal .ed-cell input').forEach(inp => {
+        const v = +inp.value;
+        if (inp.value !== '' && v > 0) deltas.push({ cell: +inp.dataset.i, delta: v });
+      });
+      if (!deltas.length) { toast('少なくとも1マスの数値を入力してください'); return false; }
+      if (deltas.length > 4) { toast('みだれぬいは最大4マスです'); return false; }
+      pushHistory();
+      const r = E.act(st, 'midare', { forcedDeltas: deltas }, G.rng);
+      if (!r.ok) { G.history.pop(); toast(r.reason); return false; }
+      afterAction(r, true);
+      return true;
+    });
+  }
+
+  function openShiftPicker() {
+    const st = G.st;
+    const cur = E.currentPower(st, null, false);
+    const cands = [0, 1, 2, 3, 4].filter(p => p !== cur);
+    const body = `<div class="chips">${cands.map(p => `<button class="chip pwc ${PW_CLASS[p]}" data-p="${p}">${E.POWER_NAMES[p]}</button>`).join('')}</div>
+      <p class="hint">実機でシフト後に表示された「次のぬいパワー」を選択</p>`;
+    let chosen = null;
+    openModal('ぬいパワーシフトの結果', body, () => {
+      if (chosen == null) { toast('結果を選んでください'); return false; }
+      pushHistory();
+      const r = E.act(st, 'shift', { forcedShift: chosen }, G.rng);
+      if (!r.ok) { G.history.pop(); toast(r.reason); return false; }
+      afterAction(r, true);
+      return true;
+    });
+    $$('#modal .chip').forEach(ch => ch.onclick = () => { chosen = +ch.dataset.p; $$('#modal .chip').forEach(o => o.classList.remove('on')); ch.classList.add('on'); });
+  }
+
+  function openRandResolve() {
+    const st = G.st;
+    const body = `<div class="chips">${[0, 1, 2, 3, 4].map(p => `<button class="chip pwc ${PW_CLASS[p]}" data-p="${p}">${E.POWER_NAMES[p]}</button>`).join('')}</div>
+      <p class="hint">実機に表示されている現在のぬいパワーを選択</p>`;
+    let chosen = null;
+    openModal('「？」ぬいパワーの確定', body, () => {
+      if (chosen == null) return false;
+      st.resolvedRandom[st.turn] = chosen;
+      renderPlay();
+      return true;
+    });
+    $$('#modal .chip').forEach(ch => ch.onclick = () => { chosen = +ch.dataset.p; $$('#modal .chip').forEach(o => o.classList.remove('on')); ch.classList.add('on'); });
+  }
+
+  function openRegenAdjust(regen) {
+    const st = G.st;
+    const cell = st.cells[regen.cell];
+    const body = `<p>再生対象：マス（${cell.r + 1},${cell.c + 1}）ツールの仮判定 -${regen.heal}</p>
+      <div class="chips">${[12, 13, 14, 15, 16].map(v => `<button class="chip" data-v="${v}">-${v}</button>`).join('')}</div>
+      <p class="hint">実機で戻った数値を選択（対象マスが違う場合は「対象修正」）</p>
+      <button class="mini" id="regen-retarget">対象マスを修正する</button>`;
+    let chosen = regen.heal;
+    openModal('再生布：実測値の入力', body, () => {
+      // 仮回復を巻き戻して選択値を適用
+      cell.dmg += regen.heal;
+      const actual = Math.min(cell.dmg, chosen);
+      cell.dmg -= actual;
+      if (E.clothPhase(st) === 'pinkGlow') { openGlowPicker(); return true; }
+      renderPlay();
+      return true;
+    });
+    $$('#modal .chip').forEach(ch => ch.onclick = () => { chosen = +ch.dataset.v; $$('#modal .chip').forEach(o => o.classList.remove('on')); ch.classList.add('on'); });
+    $('#regen-retarget').onclick = () => {
+      cell.dmg += regen.heal; // 巻き戻し
+      closeModal();
+      openRegenTargetPicker();
+    };
+  }
+  function openRegenTargetPicker() {
+    const st = G.st;
+    const body = `<div class="chips">${st.cells.map((c, i) => `<button class="chip" data-i="${i}">（${c.r + 1},${c.c + 1}）${c.dmg}／${c.std}</button>`).join('')}</div>
+      <div class="chips" style="margin-top:8px">${[12, 13, 14, 15, 16].map(v => `<button class="chip hv" data-v="${v}">-${v}</button>`).join('')}</div>`;
+    let ti = null, hv = null;
+    openModal('再生：対象と数値', body, () => {
+      if (ti == null || hv == null) { toast('対象と数値を選択'); return false; }
+      const c = st.cells[ti];
+      c.dmg -= Math.min(c.dmg, hv);
+      if (E.clothPhase(st) === 'pinkGlow') { openGlowPicker(); return true; }
+      renderPlay();
+      return true;
+    });
+    $$('#modal .chip:not(.hv)').forEach(ch => ch.onclick = () => { ti = +ch.dataset.i; $$('#modal .chip:not(.hv)').forEach(o => o.classList.remove('on')); ch.classList.add('on'); });
+    $$('#modal .chip.hv').forEach(ch => ch.onclick = () => { hv = +ch.dataset.v; $$('#modal .chip.hv').forEach(o => o.classList.remove('on')); ch.classList.add('on'); });
+  }
+
+  function openGlowPicker() {
+    const st = G.st;
+    const body = `<div class="chips">${st.cells.map((c, i) => `<button class="chip" data-i="${i}">（${c.r + 1},${c.c + 1}）残${c.std - c.dmg}</button>`).join('')}
+      <button class="chip" data-i="-1">発光なし</button></div>
+      <p class="hint">実機で光っているマスを選択（ツール仮判定：${st.pinkCell >= 0 ? `（${st.cells[st.pinkCell].r + 1},${st.cells[st.pinkCell].c + 1}）` : 'なし'}）</p>`;
+    let chosen = st.pinkCell;
+    openModal('ピンク布：発光マスの確認', body, () => {
+      st.pinkCell = chosen;
+      renderPlay();
+      return true;
+    });
+    $$('#modal .chip').forEach(ch => ch.onclick = () => { chosen = +ch.dataset.i; $$('#modal .chip').forEach(o => o.classList.remove('on')); ch.classList.add('on'); });
+  }
+
+  // ---------- しあげる ----------
+  function finish() {
+    const f = E.finishResult(G.st);
+    G.result = f;
+    renderResult();
+  }
+  function renderResult() {
+    $('#play-main').classList.add('hide');
+    const box = $('#play-result');
+    box.classList.remove('hide');
+    const f = G.result;
+    const stars = SVG.star.repeat(f.stars) + SVG.starEmpty.repeat(3 - f.stars);
+    box.innerHTML = `
+      <div class="res-card ${f.big ? 'big' : ''}">
+        <div class="res-stars">${stars}</div>
+        <div class="res-title">${f.big ? (f.perfect ? '完全一致！ だいせいこう！' : 'だいせいこう！') : f.stars >= 1 ? 'せいこう' : 'しっぱい…'}</div>
+        <div class="res-meta">誤差合計 ${f.totalError} ／ 大成功ライン ${f.allow} 以内</div>
+        <div class="res-cells">${G.st.cells.map(c => {
+          const e = c.dmg - c.std;
+          return `<span class="rc ${e === 0 ? 'z' : Math.abs(e) <= 4 ? 'n' : 'o'}">${e === 0 ? '±0' : (e > 0 ? '+' + e : e)}</span>`;
+        }).join('')}</div>
+        <div class="res-actions">
+          <button class="btn ghost" id="res-back">状態に戻る</button>
+          <button class="btn" id="res-retry">もう一度縫う</button>
+          <button class="btn ghost" id="res-home">ホームへ</button>
+        </div>
+      </div>`;
+    $('#res-back').onclick = () => { G.result = null; renderPlay(); };
+    $('#res-retry').onclick = () => startPlay(G.mode);
+    $('#res-home').onclick = () => { G = null; show('home'); };
+  }
+
+  // ---------- インサイト（分布・逆引き・AI） ----------
+  function renderInsight() {
+    const st = G.st;
+    const box = $('#insight');
+    if (G.pendingSkill && G.pendingTargets && (G.pendingTargets.length || G.pendingSkill === 'midare')) {
+      const dist = E.actionDistribution(st, { skill: G.pendingSkill, targets: G.pendingTargets });
+      if (!dist) { box.innerHTML = ''; return; }
+      if (dist.midare) { box.innerHTML = `<p class="hint">みだれぬい（消費${dist.cost}）：重複なしのランダム4マスに 2.0／1.0／1.0／0.5倍。マスを選べないため分布は省略します。</p>`; return; }
+      if (dist.random) { box.innerHTML = '<p class="hint">ぬいパワー「？」— 確定後に分布を表示します</p>'; return; }
+      const sk = skillDefs().find(s => s.id === G.pendingSkill);
+      box.innerHTML = `<div class="ins-h">結果分布 — ${sk.name}（${E.POWER_NAMES[dist.power]}・消費${dist.cost}）</div>` +
+        dist.perCell.map(p => {
+          const cd = st.cells[p.cell];
+          const rows = Object.entries(p.outcomes).sort((a, b) => +a[0] - +b[0]).map(([rem, pr]) => {
+            const r = +rem;
+            const cls = r === 0 ? 'z' : Math.abs(r) <= 4 ? 'n' : r < 0 ? 'o' : '';
+            return `<span class="dist ${cls}">${r === 0 ? '±0' : r > 0 ? '残' + r : '超' + (-r)}<i>${Math.round(pr * 100)}%</i></span>`;
+          }).join('');
+          return `<div class="ins-cell"><b>（${cd.r + 1},${cd.c + 1}）残${p.rem}</b>
+            <span class="zp ${p.zeroProb > 0 ? 'hot' : ''}">誤差0：${(p.zeroProb * 100).toFixed(1)}%</span>
+            <span class="cr">会心率：${p.critRate.toFixed(1)}%</span>
+            <div class="dists">${rows}</div></div>`;
+        }).join('');
+    } else {
+      box.innerHTML = '<p class="hint">特技→マスの順に選ぶと結果分布を表示。マス単体タップで逆引き。</p>';
+    }
+  }
+
+  function showCellLookup(rem, cellIdx) {
+    const mv = E.lookupMoves(rem);
+    const body = mv.length ? `<div class="lk-list">${mv.map(m => lkRow(m)).join('')}</div>` :
+      `<p>±${Math.abs(rem)} を1手ちょうどで出せる縫い方はありません。</p>`;
+    openModal(`残り ${rem > 0 ? rem : rem === 0 ? '±0' : '超過' + (-rem)} の逆引き`, body, () => true, true);
+  }
+  const TABLE_NAMES = { nuu: 'ぬう（等倍）', kagen: 'かげんぬい（0.5倍）', x2: '2倍ぬい', x3: '3倍ぬい', makiC: '巻きこみ・中心（1.5倍）', makiA: '巻き周囲／半かげん（0.75倍）', han: '半かげんぬい（0.75倍）', hogushi: '糸ほぐし', regen: '再生布' };
+  function lkRow(m) {
+    const pw = m.power < 0 ? '' : `<span class="pwchip small ${PW_CLASS[m.power]}">${E.POWER_NAMES[m.power]}</span>`;
+    return `<div class="lk-row">${pw}<span class="lk-n">${TABLE_NAMES[m.table]}</span><span class="lk-p">${(m.prob * 100).toFixed(1)}%</span></div>`;
+  }
+
+  // ---------- AI推奨 ----------
+  function runAI() {
+    const st = G.st;
+    if (G.mode === 'support' && E.currentPower(st, null, false) === E.POWER.RANDOM) { toast('「？」を確定してから実行してください'); return; }
+    const btn = $('#btn-ai');
+    const aiLabel = $('#ai-label');
+    btn.disabled = true; aiLabel.textContent = '思考中…';
+    setTimeout(() => {
+      const recs = E.recommend(st, { depth: settings.aiDepth, samples: settings.aiSamples, timeBudget: settings.aiTime, seed: (Date.now() & 0xffff) + 7 });
+      btn.disabled = false; aiLabel.textContent = 'AI推奨手';
+      const top = recs.slice(0, 6);
+      const defs = skillDefs();
+      const body = top.length ? top.map((r, i) => {
+        const sk = defs.find(s => s.id === r.action.skill);
+        const tg = r.action.targets && r.action.targets.length ?
+          '→ ' + r.action.targets.map(t => `（${st.cells[t].r + 1},${st.cells[t].c + 1}）`).join('') : '';
+        return `<button class="ai-row" data-i="${i}"><b>${i + 1}. ${sk.name}</b> ${tg}
+          <span class="ai-m">評価 ${r.value.toFixed(1)} ／ 平均誤差0マス ${r.avgZero.toFixed(2)}</span></button>`;
+      }).join('') : '<p>実行可能な手がありません。</p>';
+      openModal(`AI推奨（先読み${settings.aiDepth}手・${settings.aiSamples}サンプル）`, body + '<p class="hint">タップでその手をセットします。期待値ベースの参考情報です。</p>', () => true, true);
+      $$('#modal .ai-row').forEach(row => {
+        row.onclick = () => {
+          const r = top[+row.dataset.i];
+          G.pendingSkill = r.action.skill;
+          G.pendingTargets = r.action.targets.length ? r.action.targets : (isNoTarget(r.action.skill) ? [] : null);
+          closeModal();
+          renderCommands(); renderGrid(); renderInsight();
+        };
+      });
+    }, 30);
+  }
+
+  // ---------- サポート用状態直接編集 ----------
+  function openStateEditor() {
+    const st = G.st;
+    const body = `
+      <div class="ed-grid">${st.cells.map((c, i) => `
+        <label class="ed-cell">（${c.r + 1},${c.c + 1}）<input type="number" inputmode="numeric" data-i="${i}" value="${c.dmg}"></label>`).join('')}
+      </div>
+      <div class="ed-row"><label>ターン <input type="number" inputmode="numeric" id="ed-turn" value="${st.turn}"></label>
+      <label>集中力 <input type="number" inputmode="numeric" id="ed-focus" value="${st.focus}"></label></div>
+      <div class="ed-row"><label><input type="checkbox" id="ed-hc" ${st.hissatsuCharged ? 'checked' : ''}> ひっさつチャージ</label>
+      <label><input type="checkbox" id="ed-ha" ${st.hissatsuActive ? 'checked' : ''}> 必殺効果中</label></div>`;
+    openModal('状態を直接編集（実機合わせ）', body, () => {
+      pushHistory();
+      $$('#modal .ed-cell input').forEach(inp => { st.cells[+inp.dataset.i].dmg = Math.max(0, +inp.value || 0); });
+      st.turn = Math.max(1, +$('#ed-turn').value || 1);
+      st.focus = Math.max(0, +$('#ed-focus').value || 0);
+      st.hissatsuCharged = $('#ed-hc').checked;
+      st.hissatsuActive = $('#ed-ha').checked;
+      renderPlay();
+      return true;
+    });
+  }
+
+  // =========================================================
+  // データ管理（商材エディタ）
+  // =========================================================
+  let editIdx = null;
+  function renderData() {
+    const list = $('#data-list');
+    list.innerHTML = '';
+    items.forEach((it, i) => {
+      const el = document.createElement('div');
+      el.className = 'data-row';
+      el.innerHTML = `<div><b>${esc(it.name)}</b><br><small>${esc(it.part)}・${it.cells.length}マス・${clothName(it.cloth)}</small></div>
+        <div class="dr-btns"><button class="mini" data-a="edit">編集</button><button class="mini" data-a="copy">複製</button><button class="mini danger" data-a="del">削除</button></div>`;
+      el.querySelector('[data-a=edit]').onclick = () => openItemEditor(i);
+      el.querySelector('[data-a=copy]').onclick = () => { const cp = JSON.parse(JSON.stringify(it)); cp.id = 'u' + Date.now(); cp.name += '（複製）'; items.push(cp); saveItems(); renderData(); };
+      el.querySelector('[data-a=del]').onclick = () => { if (confirm('削除しますか？')) { items.splice(i, 1); saveItems(); if (selectedItem >= items.length) selectedItem = 0; renderData(); } };
+      list.appendChild(el);
+    });
+  }
+  function saveItems() { store.set('items', items); }
+
+  function openItemEditor(idx) {
+    editIdx = idx;
+    const isNew = idx == null;
+    const it = isNew ? { id: 'u' + Date.now(), name: '新しい商材', part: '体上', allow: 7, cells: cellsRect(3, 3, 50), pattern: [1, 2, 3, 0], patternLoop: 0, cloth: 'none' } : JSON.parse(JSON.stringify(items[idx]));
+    const cellMap = {};
+    it.cells.forEach(c => cellMap[c.r + ',' + c.c] = c.std);
+    let gridHtml = '';
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        const on = (r + ',' + c) in cellMap;
+        gridHtml += `<div class="ed-c ${on ? 'on' : ''}" data-r="${r}" data-c="${c}">
+          <input type="number" inputmode="numeric" value="${on ? cellMap[r + ',' + c] : ''}" ${on ? '' : 'disabled'} placeholder="—">
+          <button class="ed-tgl">${on ? SVG.check : SVG.plus}</button></div>`;
+      }
+    }
+    const patHtml = it.pattern.map((p, i) => patChip(p, i, it.patternLoop)).join('');
+    const body = `
+      <label class="fld">名前 <input id="ie-name" value="${esc(it.name)}"></label>
+      <div class="ed-row">
+        <label class="fld">部位 <select id="ie-part">${['頭', '体上', '体下', '腕', '足', 'その他'].map(p => `<option ${p === it.part ? 'selected' : ''}>${p}</option>`).join('')}</select></label>
+        <label class="fld">大成功許容誤差 <input id="ie-allow" type="number" inputmode="numeric" value="${it.allow}"></label>
+      </div>
+      <label class="fld">布特性 <select id="ie-cloth">
+        <option value="none" ${it.cloth === 'none' ? 'selected' : ''}>なし</option>
+        <option value="regen" ${it.cloth === 'regen' ? 'selected' : ''}>再生布</option>
+        <option value="rainbow" ${it.cloth === 'rainbow' ? 'selected' : ''}>虹布</option>
+        <option value="pink" ${it.cloth === 'pink' ? 'selected' : ''}>ピンク布</option>
+      </select></label>
+      <div class="ed-h">マスと基準値（＋で有効化）</div>
+      <div class="ie-grid">${gridHtml}</div>
+      <div class="ed-h">ぬいパワーパターン（タップで変更／⟲=ループ開始位置）</div>
+      <div class="pat-list" id="ie-pat">${patHtml}</div>
+      <div class="ed-row"><button class="mini" id="pat-add">＋追加</button><button class="mini danger" id="pat-del">末尾削除</button></div>
+      <p class="hint">パターン末尾まで進むと⟲位置からループします。</p>`;
+    openModal(isNew ? '商材を新規登録' : '商材を編集', body, () => {
+      it.name = $('#ie-name').value || '無名の商材';
+      it.part = $('#ie-part').value;
+      it.allow = Math.max(0, +$('#ie-allow').value || 0);
+      it.cloth = $('#ie-cloth').value;
+      it.cells = [];
+      $$('#modal .ed-c.on').forEach(el => {
+        it.cells.push({ r: +el.dataset.r, c: +el.dataset.c, std: Math.max(1, +el.querySelector('input').value || 1) });
+      });
+      if (!it.cells.length) { toast('マスを1つ以上有効にしてください'); return false; }
+      if (!it.pattern.length) { toast('パターンを1つ以上'); return false; }
+      it.sample = false;
+      if (isNew) items.push(it); else items[idx] = it;
+      saveItems(); renderData();
+      return true;
+    });
+    // grid toggles
+    $$('#modal .ed-c').forEach(el => {
+      el.querySelector('.ed-tgl').onclick = () => {
+        el.classList.toggle('on');
+        const inp = el.querySelector('input');
+        inp.disabled = !el.classList.contains('on');
+        if (!inp.disabled && !inp.value) inp.value = 50;
+        el.querySelector('.ed-tgl').innerHTML = el.classList.contains('on') ? SVG.check : SVG.plus;
+      };
+    });
+    // pattern editing
+    function refreshPat() { $('#ie-pat').innerHTML = it.pattern.map((p, i) => patChip(p, i, it.patternLoop)).join(''); bindPat(); }
+    function bindPat() {
+      $$('#ie-pat .patc').forEach(el => {
+        el.onclick = () => { const i = +el.dataset.i; it.pattern[i] = (it.pattern[i] + 1) % 6; refreshPat(); };
+        el.oncontextmenu = (e) => { e.preventDefault(); it.patternLoop = +el.dataset.i; refreshPat(); };
+      });
+      $$('#ie-pat .patl').forEach(el => { el.onclick = (e) => { e.stopPropagation(); it.patternLoop = +el.dataset.i; refreshPat(); }; });
+    }
+    bindPat();
+    $('#pat-add').onclick = () => { it.pattern.push(1); refreshPat(); };
+    $('#pat-del').onclick = () => { if (it.pattern.length > 1) { it.pattern.pop(); if (it.patternLoop >= it.pattern.length) it.patternLoop = 0; refreshPat(); } };
+  }
+  function patChip(p, i, loop) {
+    return `<span class="patc ${PW_CLASS[p]}" data-i="${i}">${i + 1}<b>${E.POWER_SHORT[p]}</b><i class="patl ${i === loop ? 'on' : ''}" data-i="${i}">${SVG.loop}</i></span>`;
+  }
+
+  function exportJson() {
+    const data = { version: 1, items: items, settings: settings };
+    $('#io-text').value = JSON.stringify(data, null, 1);
+    toast('エクスポートしました（テキストをコピー）');
+  }
+  function importJson() {
+    try {
+      const data = JSON.parse($('#io-text').value);
+      if (data.items) { items = data.items; saveItems(); }
+      if (data.settings) { settings = Object.assign({}, DEFAULT_SETTINGS, data.settings); store.set('settings', settings); }
+      renderData(); toast('インポートしました');
+    } catch (e) { toast('JSONの解析に失敗: ' + e.message); }
+  }
+
+  // =========================================================
+  // 逆引きツール
+  // =========================================================
+  function renderLookup() {
+    const inp = $('#lk-input');
+    const run = () => {
+      const v = +inp.value;
+      const out = $('#lk-out');
+      if (!v && v !== 0) { out.innerHTML = ''; return; }
+      const mv = E.lookupMoves(v);
+      out.innerHTML = mv.length ? mv.map(m => lkRow(m)).join('') : '<p class="hint">1手ちょうどで出せる縫い方はありません。かげん・ほぐしでの分割を検討。</p>';
+    };
+    inp.oninput = run;
+    $$('#scr-lookup .lk-quick button').forEach(b => b.onclick = () => { inp.value = b.textContent.replace('超過', '-').replace('+', ''); run(); });
+    run();
+  }
+
+  // =========================================================
+  // 設定
+  // =========================================================
+  function renderSettings() {
+    $('#st-focus').value = settings.focus;
+    $('#st-crit').value = settings.baseCrit;
+    $('#st-hc').value = settings.hissatsuChance;
+    $('#st-sh').checked = settings.startHissatsu;
+    $('#st-depth').value = settings.aiDepth;
+    $('#st-samples').value = settings.aiSamples;
+    $('#st-time').value = settings.aiTime;
+    $('#st-lv').value = settings.lvLimit;
+    const list = $('#st-skills');
+    list.innerHTML = '';
+    E.SKILLS.forEach(s => {
+      const cur = settings.skillCosts[s.id] != null ? settings.skillCosts[s.id] : s.cost;
+      const row = document.createElement('div');
+      row.className = 'st-row';
+      row.innerHTML = `<span>${s.name}${s.unverified ? ' <i class="uv">※要検証</i>' : ''}</span><input type="number" inputmode="numeric" data-id="${s.id}" value="${cur}">`;
+      list.appendChild(row);
+    });
+  }
+  function saveSettings() {
+    settings.focus = Math.max(1, +$('#st-focus').value || 100);
+    settings.baseCrit = Math.max(0, +$('#st-crit').value || 0);
+    settings.hissatsuChance = Math.max(0, +$('#st-hc').value || 0);
+    settings.startHissatsu = $('#st-sh').checked;
+    settings.aiDepth = Math.min(3, Math.max(1, +$('#st-depth').value || 2));
+    settings.aiSamples = Math.min(200, Math.max(4, +$('#st-samples').value || 24));
+    settings.aiTime = Math.min(10000, Math.max(300, +$('#st-time').value || 1800));
+    settings.lvLimit = Math.max(0, +$('#st-lv').value || 0);
+    settings.skillCosts = {};
+    $$('#st-skills input').forEach(inp => {
+      const def = E.SKILLS.find(s => s.id === inp.dataset.id);
+      const v = +inp.value;
+      if (def && v !== def.cost && v >= 0) settings.skillCosts[inp.dataset.id] = v;
+    });
+    store.set('settings', settings);
+    toast('設定を保存しました');
+  }
+
+  // ---------- 共通UI ----------
+  let modalOk = null;
+  function openModal(title, bodyHtml, onOk, okOnly) {
+    $('#modal-title').textContent = title;
+    $('#modal-body').innerHTML = bodyHtml;
+    $('#modal').classList.remove('hide');
+    $('#modal-cancel').classList.toggle('hide', !!okOnly);
+    $('#modal-ok').textContent = okOnly ? '閉じる' : '決定';
+    modalOk = onOk;
+  }
+  function closeModal() { $('#modal').classList.add('hide'); modalOk = null; }
+  $('#modal-ok').onclick = () => { if (!modalOk || modalOk() !== false) closeModal(); };
+  $('#modal-cancel').onclick = closeModal;
+
+  let toastTimer = null;
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+  // ---------- バインド ----------
+  $$('.tabbar button').forEach(b => b.onclick = () => {
+    if (b.dataset.scr === 'play' && !G) { toast('ホームで商材を選んで開始してください'); return; }
+    show(b.dataset.scr);
+    if (b.dataset.scr === 'play') renderPlay();
+  });
+  $('#btn-start-sim').onclick = () => startPlay('sim');
+  $('#btn-start-support').onclick = () => startPlay('support');
+  $('#btn-exec').onclick = execAction;
+  $('#btn-undo').onclick = undo;
+  $('#btn-finish').onclick = () => { if (confirm('しあげますか？')) finish(); };
+  $('#btn-ai').onclick = runAI;
+  $('#btn-edit-state').onclick = openStateEditor;
+  $('#rand-resolve').onclick = openRandResolve;
+  $('#btn-glow-fix').onclick = () => { if (G && G.st.item.cloth === 'pink') openGlowPicker(); else toast('ピンク布商材のみ'); };
+  $('#btn-new-item').onclick = () => openItemEditor(null);
+  $('#btn-export').onclick = exportJson;
+  $('#btn-import').onclick = importJson;
+  $('#btn-reset-presets').onclick = () => { if (confirm('プリセットを再読込・更新します（自作の商材は保持）')) { PRESET_ITEMS.forEach(p => { const ex = items.findIndex(i => i.id === p.id); if (ex >= 0) items[ex] = JSON.parse(JSON.stringify(p)); else items.push(JSON.parse(JSON.stringify(p))); }); saveItems(); renderData(); } };
+  $('#btn-save-settings').onclick = saveSettings;
+  $$('#st-presets button').forEach(b => b.onclick = () => {
+    const [f, c] = b.dataset.v.split(',');
+    $('#st-focus').value = f; $('#st-crit').value = c;
+  });
+
+  // ---------- テーマ（ダーク／ライト・円形リビール切替） ----------
+  let theme = store.get('theme', 'dark');
+  const themeBtn = $('#theme-toggle');
+  function applyTheme(t) {
+    theme = t;
+    document.documentElement.dataset.theme = t;
+    themeBtn.setAttribute('aria-label', t === 'dark' ? 'ライトモードに切り替え' : 'ダークモードに切り替え');
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.content = t === 'dark' ? '#12182a' : '#f2ecdd';
+    store.set('theme', t);
+  }
+  function circularThemeSwitch(ev) {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    const rect = themeBtn.getBoundingClientRect();
+    const x = ev && ev.clientX ? ev.clientX : rect.left + rect.width / 2;
+    const y = ev && ev.clientY ? ev.clientY : rect.top + rect.height / 2;
+    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (reduced) { applyTheme(next); return; }
+    if (document.startViewTransition) {
+      const vt = document.startViewTransition(() => applyTheme(next));
+      vt.ready.then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+          { duration: 500, easing: 'cubic-bezier(.3,.7,.2,1)', pseudoElement: '::view-transition-new(root)' }
+        );
+      }).catch(() => {});
+    } else {
+      const ov = document.createElement('div');
+      ov.className = 'theme-ripple';
+      ov.style.background = next === 'dark' ? '#12182a' : '#f2ecdd';
+      ov.style.left = x + 'px'; ov.style.top = y + 'px';
+      document.body.appendChild(ov);
+      requestAnimationFrame(() => { ov.style.width = ov.style.height = (r * 2) + 'px'; });
+      setTimeout(() => applyTheme(next), 280);
+      setTimeout(() => ov.remove(), 650);
+    }
+  }
+  themeBtn.onclick = circularThemeSwitch;
+  applyTheme(theme);
+
+  if (!store.usable) toast('この環境では保存が無効です（プレビュー中）。ホーム画面追加後は保存されます。');
+  show('home');
+
+  // PWA
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
