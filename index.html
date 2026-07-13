@@ -449,6 +449,57 @@ input,select,#io-text{border-radius:12px}
 .ed-c{border-radius:12px}
 .uv{color:var(--ki)}
 
+
+/* ===================== 作業台: 1画面完結レイアウト ===================== */
+#scr-play{padding:0}
+#scr-play.active{display:flex;flex-direction:column;overflow:hidden}
+#scr-play>*{max-width:none}
+#play-main{display:flex;flex-direction:column;min-height:0;height:100%;width:100%;
+  max-width:560px;margin:0 auto;padding:0 14px}
+/* ヘッダ圧縮（固定レイアウトなのでstickyは不要） */
+#play-main .p-sticky{position:static;top:auto;margin:0 -14px;padding:8px 14px 6px;
+  padding-top:calc(8px + env(safe-area-inset-top));box-shadow:none}
+.p-stats{margin:5px 0 2px;gap:12px}
+.stat b{font-size:19px}
+.pwband{margin:5px 0 2px;padding:6px 10px}
+.pwchip{font-size:14px;padding:4px 11px}
+.clothfx{padding:2px 2px 0;font-size:11px}
+#p-hissatsu{font-size:11px}
+/* 盤面: 残り空間にフィット・常に全マス表示 */
+#cloth{flex:1 1 auto;min-height:0;margin:8px 0 6px;overflow:hidden;
+  align-content:center;justify-content:center;gap:7px;padding:10px}
+.cell{min-height:0;padding:5px 4px 4px}
+.cell .c-dmg{font-size:clamp(17px,3.4vh,26px)}
+.cell .c-std{font-size:10px;margin-top:0}
+.cell .c-rem{font-size:clamp(11px,1.8vh,13px);margin-top:2px}
+.sub-row{margin:0 0 6px;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.sub-row::-webkit-scrollbar{display:none}
+.sub-row .mini{white-space:nowrap;flex-shrink:0}
+/* インサイト: 高さ制限つき内部スクロール */
+#insight{flex:0 0 auto;max-height:22vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  margin-bottom:6px;padding:8px 10px;min-height:0}
+#insight .hint{margin:1px 0;font-size:11px}
+/* コマンドドック: 不透明・横スクロール2段の帯 */
+#play-main .cmd-dock{position:static;bottom:auto;margin:0 -14px;margin-top:0;
+  padding:8px 14px 9px;background:var(--ai2);border-top:1px solid var(--line)}
+#commands{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,1fr);gap:6px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:3px 2px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 10px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 10px,#000 calc(100% - 10px),transparent)}
+#commands::-webkit-scrollbar{display:none}
+.cmd{flex-direction:row;justify-content:space-between;align-items:center;gap:8px;
+  min-width:112px;padding:8px 12px;border-radius:12px}
+.cmd .cmd-n{font-size:12px;white-space:nowrap}
+.cmd .cmd-c{font-size:12px}
+.act-row{margin:8px 0 0;gap:8px}
+.act-row .btn{padding:11px}
+#play-result{overflow-y:auto;flex:1;padding:0 14px}
+/* 縦が極端に狭い端末はスクロールにフォールバック */
+@media (max-height:600px){
+  #scr-play.active{overflow-y:auto}
+  #cloth{flex:none}
+}
+
 </style>
 </head>
 <body>
@@ -1591,7 +1642,8 @@ input,select,#io-text{border-radius:12px}
     grid.innerHTML = '';
     const rows = Math.max(...st.cells.map(c => c.r)) + 1;
     const cols = Math.max(...st.cells.map(c => c.c)) + 1;
-    grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 132px))`;
+    grid.style.gridTemplateRows = `repeat(${rows}, minmax(58px, 132px))`;
     const map = {};
     st.cells.forEach((c, i) => (map[c.r + ',' + c.c] = i));
     const ph = E.clothPhase(st);
