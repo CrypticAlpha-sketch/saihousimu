@@ -372,6 +372,83 @@ h1,h2{font-weight:800;letter-spacing:.04em}
   font-size:13px;opacity:0;transition:.22s;z-index:70;max-width:88vw;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 button:focus-visible,.cell:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ===================== フェルトスキン ===================== */
+:root{
+  --thick:rgba(0,0,0,.32);            /* フェルトの厚み影 */
+  --stitch:rgba(240,179,199,.55);     /* ブランケットステッチ */
+  --gold-d:#c9879f;                   /* 桃の濃色（ボタン厚み） */
+}
+[data-theme=light]{
+  --thick:rgba(165,115,140,.24);
+  --stitch:rgba(205,125,155,.5);
+  --gold-d:#b56a85;
+}
+/* 丸ゴシック（フェルト文字） */
+body,input,select,textarea{
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Maru Gothic Pro",
+  "BIZ UDPGothic","M PLUS Rounded 1c","メイリオ",-apple-system,sans-serif;
+  letter-spacing:.015em}
+:root{--num:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Hiragino Maru Gothic ProN",sans-serif}
+h1,h2{letter-spacing:.06em}
+
+/* フェルト繊維ノイズ（全面・非干渉） */
+body::before{content:"";position:fixed;inset:0;z-index:10000;pointer-events:none;opacity:.05;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  background-size:160px 160px}
+[data-theme=light] body::before{opacity:.045}
+
+/* 厚み＝下段ベタ影 + 押すと沈む */
+.btn{border-radius:16px;box-shadow:0 4px 0 var(--gold-d)}
+.btn.ghost{box-shadow:0 4px 0 var(--thick)}
+.btn:not(:disabled):active{transform:translateY(3px);box-shadow:0 1px 0 var(--gold-d)}
+.btn.ghost:not(:disabled):active{box-shadow:0 1px 0 var(--thick)}
+.mini{border-radius:12px;box-shadow:0 2px 0 var(--thick)}
+.mini:active{transform:translateY(2px);box-shadow:0 0 0 var(--thick)}
+.cmd{border-radius:14px;box-shadow:0 3px 0 var(--thick)}
+.cmd:active{transform:translateY(2px);box-shadow:0 1px 0 var(--thick)}
+.cmd.sel{box-shadow:0 3px 0 var(--gold-d)}
+.item-card{border-radius:16px;box-shadow:0 3px 0 var(--thick)}
+.item-card:active{transform:translateY(2px);box-shadow:0 1px 0 var(--thick)}
+.theme-btn{box-shadow:0 3px 0 var(--thick)}
+.theme-btn:active{transform:translateY(2px) scale(.96);box-shadow:0 1px 0 var(--thick)}
+.chip{border-radius:999px;box-shadow:0 2px 0 var(--thick)}
+.chip:active{transform:translateY(1px)}
+.pwchip{border-radius:999px;box-shadow:0 2px 0 var(--thick)}
+.pwchip.small{box-shadow:0 1px 0 var(--thick)}
+.clothchip{border-radius:999px}
+.badge{border-radius:999px;padding:2px 8px}
+.ai-row,.lk-row,.data-row{border-radius:14px;box-shadow:0 2px 0 var(--thick)}
+.ai-row:active{transform:translateY(1px)}
+input,select,#io-text{border-radius:12px}
+
+/* フェルトパッチ＝布マス（厚み+白フチ+ステッチ） */
+.cell{border-radius:14px;--ring:rgba(255,255,255,.55);--pad:var(--linen-d);
+  border-width:2.5px;
+  box-shadow:inset 0 0 0 3px var(--ring),0 4px 0 var(--pad),0 8px 12px -6px rgba(0,0,0,.3)}
+.cell.empty{box-shadow:none}
+.cell.c-near{--ring:var(--ki);--pad:#e0cd9c}
+.cell.c-zero{--ring:var(--wakaba);--pad:#b2d9c2}
+.cell.c-over{--ring:var(--aka);--pad:#e9c0ca}
+.cell:not(.empty):active{transform:translateY(2px) scale(.98)}
+@keyframes glow{
+  from{box-shadow:inset 0 0 0 3px #f5b8dd,0 4px 0 #ecc3cd,0 0 10px 2px rgba(245,160,213,.7)}
+  to{box-shadow:inset 0 0 0 3px #ff9ad2,0 4px 0 #ecc3cd,0 0 18px 5px rgba(255,140,205,.8)}}
+.sh-cell{border-radius:10px;box-shadow:0 2px 0 var(--linen-d)}
+
+/* ブランケットステッチ縁 */
+.sec,.pwband,#cloth,.res-card,.sh-grid{outline:2px dashed var(--stitch);outline-offset:-7px}
+.sec,.pwband,#insight,.res-card{border-radius:18px}
+#cloth,.sh-grid{border-radius:20px}
+.modal-in{border-radius:26px 26px 0 0}
+#toast{border-radius:14px;box-shadow:0 3px 0 var(--thick)}
+.focusbar{border-radius:999px}
+.focusbar i{border-radius:999px}
+.tabbar button.on::before{width:30px;height:4px;border-radius:0 0 4px 4px}
+.patc{border-radius:10px;box-shadow:0 2px 0 var(--thick)}
+.ed-c{border-radius:12px}
+.uv{color:var(--ki)}
+
 </style>
 </head>
 <body>
