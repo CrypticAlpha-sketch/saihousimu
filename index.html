@@ -515,6 +515,17 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   accent-color:var(--gold);border-radius:6px}
 .ed-row label{flex-wrap:wrap}
 
+
+/* 逆引き: セクション・コンボ行 */
+.lk-sec{font-size:12px;font-weight:800;color:var(--gold);margin:12px 2px 6px}
+.lk-row.combo{flex-wrap:wrap;row-gap:2px}
+.lk-n1{font-size:12.5px;white-space:nowrap}
+.lk-arrow{color:var(--tx-dim);font-size:12px}
+.lk-cost{margin-left:auto;font-size:11px;color:var(--tx-dim);font-family:var(--num)}
+.lk-row.combo .lk-p{margin-left:6px}
+.lk-note{flex-basis:100%;font-size:10px;color:var(--tx-dim);padding-left:2px}
+#lk-out{padding-bottom:8px}
+
 </style>
 </head>
 <body>
@@ -595,16 +606,16 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
 
 <!-- 逆引き -->
 <section class="screen" id="scr-lookup">
-  <div class="apph"><h1>数値逆引き</h1><span class="sub">残り値 → 縫い方</span></div>
+  <div class="apph"><h1>数値逆引き</h1><span class="sub">残り値 → 縫い方・コンボ成功率</span></div>
   <input id="lk-input" type="number" inputmode="numeric" placeholder="残り数値（超過はマイナスで入力）">
   <div class="lk-quick">
-    <button class="mini">4</button><button class="mini">5</button><button class="mini">8</button>
+    <button class="mini">2</button><button class="mini">4</button><button class="mini">5</button><button class="mini">8</button>
     <button class="mini">12</button><button class="mini">18</button><button class="mini">36</button>
     <button class="mini">72</button><button class="mini">108</button>
     <button class="mini">-3</button><button class="mini">-4</button><button class="mini">-12</button>
   </div>
   <div id="lk-out"></div>
-  <p class="hint">確率は1発ちょうどで誤差0になる確率。糸ほぐしは超過分ぴったり、再生布は12〜16の抽選です。</p>
+  <p class="hint">「2手コンボ」は 1手目で外れても2手目でぴったりにできる確率（1手目で決まればそこで終了）。誤差2など1手で作れない数値の詰め方に。</p>
 </section>
 
 <!-- 設定 -->
@@ -1354,11 +1365,63 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     return { power: pw, cost: effectiveCost(st, sk.cost), perCell: perCell };
   }
 
+  // ---- 2手コンボ逆引き ----
+  // rem を「1手目→(外れたら)2手目」でちょうど0にする成功率
+  // 前提: 会心・しつけ・布特性なし、ほぐしの下限クリップなし（基準値が十分大きい想定）
+  const COMBO_MOVES = (() => {
+    const defs = [
+      { table: 'nuu', name: 'ぬう', cost: 5, heal: false },
+      { table: 'kagen', name: 'かげんぬい', cost: 10, heal: false },
+      { table: 'x2', name: '2倍ぬい', cost: 9, heal: false },
+      { table: 'x3', name: '3倍ぬい', cost: 12, heal: false },
+      { table: 'han', name: '半かげんぬい', cost: 12, heal: false },
+      { table: 'hogushi', name: '糸ほぐし', cost: 16, heal: true },
+    ];
+    const out = [];
+    for (const d of defs) for (let p = 0; p < 4; p++) {
+      out.push({ table: d.table, name: d.name, cost: d.cost, heal: d.heal, power: p, rolls: T[d.table][p] });
+    }
+    return out;
+  })();
+
+  function comboMoves(rem, opts) {
+    opts = opts || {};
+    const costOf = opts.costOf || (m => m.cost);
+    const results = [];
+    for (const m1 of COMBO_MOVES) {
+      // 1手目の結果分布
+      let hit1 = 0;
+      const misses = {}; // 残り値 -> 出現数
+      for (const v of m1.rolls) {
+        const r2 = m1.heal ? rem + v : rem - v;
+        if (r2 === 0) hit1++;
+        else misses[r2] = (misses[r2] || 0) + 1;
+      }
+      for (const m2 of COMBO_MOVES) {
+        let cnt = 0;
+        for (const r2s in misses) {
+          const r2 = +r2s;
+          for (const v of m2.rolls) {
+            const r3 = m2.heal ? r2 + v : r2 - v;
+            if (r3 === 0) cnt += misses[r2s];
+          }
+        }
+        // 2手目が1手目の外れを救える組み合わせのみ（救えないなら単発と同じで無意味）
+        if (cnt > 0) {
+          const prob = hit1 / 7 + cnt / 49;
+          results.push({ m1: m1, m2: m2, prob: prob, hit1: hit1 / 7, rescue: cnt / 49, cost: costOf(m1) + costOf(m2) });
+        }
+      }
+    }
+    results.sort((a, b) => b.prob - a.prob || a.cost - b.cost);
+    return results.slice(0, opts.max || 12);
+  }
+
   const API = {
     POWER, POWER_NAMES, POWER_SHORT, T, REGEN_HEAL, SKILLS,
     makeRng, createState, act, endTurn, finishResult, patternPowerAt, powerAt,
     currentPower, nextPowerPreview, clothPhase, effectiveCost, critRate,
-    legalActions, cloneState, recommend, lookupMoves, actionDistribution, evalState, zeroProb,
+    legalActions, cloneState, recommend, lookupMoves, comboMoves, actionDistribution, evalState, zeroProb,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   else global.SaihouEngine = API;
@@ -2044,10 +2107,36 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   }
 
   function showCellLookup(rem, cellIdx) {
-    const mv = E.lookupMoves(rem);
-    const body = mv.length ? `<div class="lk-list">${mv.map(m => lkRow(m)).join('')}</div>` :
-      `<p>±${Math.abs(rem)} を1手ちょうどで出せる縫い方はありません。</p>`;
-    openModal(`残り ${rem > 0 ? rem : rem === 0 ? '±0' : '超過' + (-rem)} の逆引き`, body, () => true, true);
+    if (rem === 0) { openModal('このマスは誤差±0です', '<p class="hint">これ以上縫う必要はありません。しつけがけの対象などにどうぞ。</p>', () => true, true); return; }
+    openModal(`残り ${rem > 0 ? rem : '超過' + (-rem)} の逆引き`, lookupHtml(rem), () => true, true);
+  }
+  const COMBO_COST = { nuu: 'nuu', kagen: 'kagen', x2: 'x2', x3: 'x3', han: 'hankagen', hogushi: 'hogushi' };
+  function comboCostOf(m) {
+    const id = COMBO_COST[m.table];
+    const def = skillDefs().find(sk => sk.id === id);
+    return def ? def.cost : m.cost;
+  }
+  function comboRow(c) {
+    return `<div class="lk-row combo">
+      <span class="pwchip small ${PW_CLASS[c.m1.power]}">${E.POWER_SHORT[c.m1.power]}</span><span class="lk-n1">${c.m1.name}</span>
+      <span class="lk-arrow">→</span>
+      <span class="pwchip small ${PW_CLASS[c.m2.power]}">${E.POWER_SHORT[c.m2.power]}</span><span class="lk-n1">${c.m2.name}</span>
+      <span class="lk-cost">計${c.cost}</span>
+      <span class="lk-p">${(c.prob * 100).toFixed(1)}%</span>
+      ${c.hit1 > 0 ? `<span class="lk-note">1手目で即決 ${(c.hit1 * 100).toFixed(1)}% 込み</span>` : ''}</div>`;
+  }
+  function lookupHtml(rem) {
+    const singles = E.lookupMoves(rem);
+    const combos = E.comboMoves(rem, { max: 10, costOf: comboCostOf });
+    let h = '';
+    h += `<div class="lk-sec">1手でぴったり</div>`;
+    h += singles.length ? `<div class="lk-list">${singles.map(m => lkRow(m)).join('')}</div>`
+      : `<p class="hint">1手ちょうどで出せる縫い方はありません。</p>`;
+    h += `<div class="lk-sec">2手コンボでぴったり（1手目で決まればそこで終了）</div>`;
+    h += combos.length ? `<div class="lk-list">${combos.map(c => comboRow(c)).join('')}</div>`
+      : `<p class="hint">2手以内でぴったりにする組み合わせが見つかりません。</p>`;
+    h += `<p class="hint">※会心・しつけ・布特性・回復下限は考慮しない目安です。消費は設定の特技コストに連動。</p>`;
+    return h;
   }
   const TABLE_NAMES = { nuu: 'ぬう（等倍）', kagen: 'かげんぬい（0.5倍）', x2: '2倍ぬい', x3: '3倍ぬい', makiC: '巻きこみ・中心（1.5倍）', makiA: '巻き周囲／半かげん（0.75倍）', han: '半かげんぬい（0.75倍）', hogushi: '糸ほぐし', regen: '再生布' };
   function lkRow(m) {
@@ -2229,9 +2318,9 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     const run = () => {
       const v = +inp.value;
       const out = $('#lk-out');
-      if (!v && v !== 0) { out.innerHTML = ''; return; }
-      const mv = E.lookupMoves(v);
-      out.innerHTML = mv.length ? mv.map(m => lkRow(m)).join('') : '<p class="hint">1手ちょうどで出せる縫い方はありません。かげん・ほぐしでの分割を検討。</p>';
+      if ((!v && v !== 0) || inp.value === '') { out.innerHTML = '<p class="hint">残り数値を入力すると、1手・2手コンボの成功率を表示します。</p>'; return; }
+      if (v === 0) { out.innerHTML = '<p class="hint">±0です。</p>'; return; }
+      out.innerHTML = lookupHtml(v);
     };
     inp.oninput = run;
     $$('#scr-lookup .lk-quick button').forEach(b => b.onclick = () => { inp.value = b.textContent.replace('超過', '-').replace('+', ''); run(); });
