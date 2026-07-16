@@ -526,6 +526,54 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
 .lk-note{flex-basis:100%;font-size:10px;color:var(--tx-dim);padding-left:2px}
 #lk-out{padding-bottom:8px}
 
+
+/* ===================== 縫い演出（実機再現） ===================== */
+#pw-flavor{font-size:11px;color:var(--tx-dim);padding:1px 4px 0;min-height:15px}
+.cell{overflow:visible}
+.fx-num{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;
+  font-family:var(--num);font-weight:900;font-size:24px;color:#fff;white-space:nowrap;
+  text-shadow:-2px -2px 0 #3a3040,2px -2px 0 #3a3040,-2px 2px 0 #3a3040,2px 2px 0 #3a3040,0 3px 6px rgba(0,0,0,.5);
+  animation:fxNum .9s cubic-bezier(.2,.8,.3,1) forwards}
+.fx-num.crit{color:#ffd76a;font-size:27px;
+  text-shadow:-2px -2px 0 #6e3a10,2px -2px 0 #6e3a10,-2px 2px 0 #6e3a10,2px 2px 0 #6e3a10,0 0 14px rgba(255,200,90,.9)}
+.fx-num.heal{color:#9af0c0;
+  text-shadow:-2px -2px 0 #164a30,2px -2px 0 #164a30,-2px 2px 0 #164a30,2px 2px 0 #164a30,0 3px 6px rgba(0,0,0,.5)}
+.fx-num.regen{color:#a0e0ff;
+  text-shadow:-2px -2px 0 #164a5e,2px -2px 0 #164a5e,-2px 2px 0 #164a5e,2px 2px 0 #164a5e,0 3px 6px rgba(0,0,0,.5)}
+@keyframes fxNum{
+  0%{opacity:0;transform:translate(-50%,-30%) scale(.35)}
+  16%{opacity:1;transform:translate(-50%,-55%) scale(1.22)}
+  30%{transform:translate(-50%,-55%) scale(1)}
+  75%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-120%) scale(.96)}}
+.fx-star{position:absolute;left:50%;top:45%;width:16px;height:16px;z-index:28;pointer-events:none;
+  animation:fxStar .6s ease-out forwards}
+.fx-star svg{width:100%;height:100%;fill:#ffe58a;filter:drop-shadow(0 0 4px rgba(255,220,120,.9))}
+.fx-star.crit svg{fill:#ffb44a;filter:drop-shadow(0 0 7px rgba(255,160,60,.95))}
+@keyframes fxStar{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(0)}
+  22%{opacity:1;transform:translate(-50%,-50%) scale(var(--sc,1))}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.15) rotate(120deg)}}
+.fx-needle{position:absolute;right:8%;top:-14%;width:34px;height:34px;z-index:29;pointer-events:none;
+  animation:fxNeedle .4s ease-in-out forwards}
+.fx-needle svg{width:100%;height:100%;transform:rotate(8deg)}
+@keyframes fxNeedle{
+  0%{opacity:0;transform:translate(14px,-14px) rotate(-6deg)}
+  30%{opacity:1;transform:translate(0,6px) rotate(4deg)}
+  50%{transform:translate(-2px,-2px) rotate(-2deg)}
+  70%{transform:translate(-4px,7px) rotate(4deg)}
+  100%{opacity:0;transform:translate(-8px,-10px) rotate(-8deg)}}
+.fx-shake{animation:fxShake .34s ease-in-out}
+@keyframes fxShake{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-4px,2px)}
+  40%{transform:translate(4px,-2px)}
+  60%{transform:translate(-3px,-2px)}
+  80%{transform:translate(2px,2px)}}
+@media (prefers-reduced-motion:reduce){
+  .fx-num,.fx-star,.fx-needle{animation:none;display:none}
+  .fx-shake{animation:none}}
+
 </style>
 </head>
 <body>
@@ -562,6 +610,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       <span id="pw-seishin" class="hide"></span>
       <button id="rand-resolve" class="hide">？を確定</button>
     </div>
+    <div id="pw-flavor"></div>
     <div class="clothfx" id="p-clothfx"></div>
     <div id="p-hissatsu" class="hide"></div>
     </div><!-- /.p-sticky -->
@@ -635,6 +684,11 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     </div>
     <label class="fld">ひっさつチャージ発生率 %（シミュ用）<input id="st-hc" type="number" step="0.5" inputmode="decimal"></label>
     <label class="fld">職人レベル上限で特技を制限（0=制限なし）<input id="st-lv" type="number" inputmode="numeric"></label>
+    <label class="fld">縫い演出（針・キラキラ・ダメージ数字）<select id="st-fx">
+      <option value="full">フル（実機風）</option>
+      <option value="fast">はやい</option>
+      <option value="off">オフ</option>
+    </select></label>
   </div>
   <div class="sec">
     <h2>AI推奨</h2>
@@ -1530,7 +1584,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   // ---------- 設定 ----------
   const DEFAULT_SETTINGS = {
     focus: 306, baseCrit: 5.6, hissatsuChance: 2, startHissatsu: false,
-    aiDepth: 2, aiSamples: 24, aiTime: 1800, lvLimit: 0,
+    aiDepth: 2, aiSamples: 24, aiTime: 1800, lvLimit: 0, fx: 'full',
     skillCosts: {},
   };
   let settings = Object.assign({}, DEFAULT_SETTINGS, store.get('settings', {}));
@@ -1653,7 +1707,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
 
   function pushHistory() { G.history.push(E.cloneState(G.st)); if (G.history.length > 60) G.history.shift(); }
   function undo() {
-    if (!G.history.length) return;
+    if (G.animating || !G.history.length) return;
     G.st = G.history.pop();
     G.result = null; G.pendingSkill = null; G.pendingTargets = null;
     renderPlay();
@@ -1681,6 +1735,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     const nxt = E.nextPowerPreview(st);
     setPowerChip($('#pw-now'), cur);
     setPowerChip($('#pw-next'), nxt);
+    $('#pw-flavor').textContent = PW_FLAVOR[cur] || '';
     $('#pw-seishin').classList.toggle('hide', !(st.seishin > 0));
     $('#pw-seishin').textContent = `精神統一 残${st.seishin}`;
     if (G.mode === 'support' && cur === E.POWER.RANDOM) {
@@ -1713,6 +1768,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     renderInsight();
   }
 
+  const PW_FLAVOR = ['よわく ぬえるぞ…', 'ふつうに ぬえるぞ！', 'つよく ぬえるぞ！', 'さいきょうに ぬえるぞ！！', 'かいしんの ぬいこみが でやすいぞ！', '？？？？'];
   function setPowerChip(el, p) {
     el.textContent = E.POWER_NAMES[p] || '—';
     el.className = 'pwchip ' + (PW_CLASS[p] || '');
@@ -1734,6 +1790,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
         const i = map[r + ',' + c];
         const cell = document.createElement('div');
         if (i == null) { cell.className = 'cell empty'; grid.appendChild(cell); continue; }
+        cell.dataset.idx = i;
         const cd = st.cells[i];
         const err = cd.dmg - cd.std;
         cell.className = 'cell';
@@ -1831,8 +1888,129 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     renderInsight();
   }
 
+  // ---------- 演出（実機再現: 針→キラキラ→ダメージ数字→カウントアップ） ----------
+  const NEEDLE_FX = '<svg viewBox="0 0 24 24" fill="none" stroke="#d6d2e8" stroke-width="2.2" stroke-linecap="round"><path d="M4 20c1-4 4-8 13.2-13.2"/><circle cx="18.3" cy="5.7" r="1.9"/></svg>';
+  const STAR_FX = '<svg viewBox="0 0 24 24"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2Z"/></svg>';
+  function cellEl(idx) { return $('#cloth .cell[data-idx="' + idx + '"]'); }
+  function updateCellVisual(el, dmg, std) {
+    if (!el) return;
+    el.querySelector('.c-dmg').textContent = dmg;
+    const rem = std - dmg;
+    const remEl = el.querySelector('.c-rem');
+    remEl.textContent = rem === 0 ? '±0' : rem > 0 ? '残 ' + rem : '超過 ' + (-rem);
+    remEl.className = 'c-rem ' + (rem < 0 ? 'neg' : rem === 0 ? 'zero' : '');
+    el.classList.remove('c-zero', 'c-near', 'c-over');
+    const err = dmg - std;
+    if (err === 0 && dmg > 0) el.classList.add('c-zero');
+    else if (Math.abs(err) <= 4) el.classList.add('c-near');
+    else if (err > 4) el.classList.add('c-over');
+  }
+  function spawnBurst(el, big, crit) {
+    const n = crit ? 10 : 7;
+    for (let k = 0; k < n; k++) {
+      const p = document.createElement('span');
+      p.className = 'fx-star' + (crit ? ' crit' : '');
+      p.innerHTML = STAR_FX;
+      const ang = (k / n) * Math.PI * 2 + Math.random() * 0.7;
+      const dist = (crit ? 52 : 38) * (0.7 + Math.random() * 0.6);
+      p.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+      p.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+      p.style.setProperty('--sc', (crit ? 1.25 : 1) * (0.7 + Math.random() * 0.6));
+      p.style.animationDelay = (Math.random() * 60) + 'ms';
+      el.appendChild(p);
+      setTimeout(() => p.remove(), 700);
+    }
+  }
+  function spawnNum(el, text, kind) {
+    const n = document.createElement('span');
+    n.className = 'fx-num ' + (kind || '');
+    n.textContent = text;
+    el.appendChild(n);
+    setTimeout(() => n.remove(), 950);
+  }
+  function spawnNeedle(el) {
+    const nd = document.createElement('span');
+    nd.className = 'fx-needle';
+    nd.innerHTML = NEEDLE_FX;
+    el.appendChild(nd);
+    setTimeout(() => nd.remove(), 420);
+  }
+  function countUp(el, from, to, std, dur) {
+    const t0 = performance.now();
+    function step(t) {
+      const p = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      updateCellVisual(el, Math.round(from + (to - from) * e), std);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function playFx(result, preVals, done) {
+    const st = G.st;
+    const level = settings.fx || 'full';
+    const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (level === 'off' || reduced || !result.hits || !result.hits.some(h => h.dmg != null || h.heal != null)) {
+      if (result.regen) regenFx(result);
+      done && done();
+      return;
+    }
+    const sp = level === 'fast' ? 0.55 : 1;
+    G.animating = true;
+    $('#btn-exec').disabled = true;
+    let anyCrit = false;
+    const hits = result.hits.filter(h => h.dmg != null || h.heal != null);
+    hits.forEach((h, k) => {
+      const el = cellEl(h.cell);
+      if (!el) return;
+      const cd = st.cells[h.cell];
+      const pre = preVals[h.cell];
+      // 新状態で描画済みの数字を旧値に巻き戻して開始
+      updateCellVisual(el, pre, cd.std);
+      const base = k * 170 * sp;
+      const isHeal = h.heal != null;
+      if (!isHeal && level === 'full') setTimeout(() => spawnNeedle(el), base);
+      setTimeout(() => {
+        spawnBurst(el, false, !!h.crit);
+        if (h.crit) { anyCrit = true; $('#cloth').classList.add('fx-shake'); setTimeout(() => $('#cloth').classList.remove('fx-shake'), 360); }
+        if (isHeal) spawnNum(el, '-' + h.heal, 'heal');
+        else spawnNum(el, (h.crit ? 'かいしん! ' : '') + '+' + h.dmg, h.crit ? 'crit' : '');
+        countUp(el, pre, cd.dmg, cd.std, 380 * sp);
+      }, base + (level === 'full' ? 260 : 60) * sp);
+    });
+    const total = (hits.length - 1) * 170 * sp + (level === 'full' ? 260 : 60) * sp + 520 * sp;
+    setTimeout(() => {
+      G.animating = false;
+      renderGrid();
+      renderCommands();
+      if (result.regen) regenFx(result);
+      done && done();
+    }, total);
+  }
+  function regenFx(result) {
+    const el = cellEl(result.regen.cell);
+    if (el && (settings.fx || 'full') !== 'off') {
+      spawnBurst(el, false, false);
+      spawnNum(el, '-' + result.regen.heal, 'regen');
+    }
+    toast('再生布：マス（' + (G.st.cells[result.regen.cell].r + 1) + ',' + (G.st.cells[result.regen.cell].c + 1) + '）が ' + result.regen.heal + ' もどった');
+  }
+  // 行動の共通ラッパ: 履歴・実行・描画・演出
+  function doAct(skillId, opts, after) {
+    const st = G.st;
+    pushHistory();
+    const pre = st.cells.map(c => c.dmg);
+    const r = E.act(st, skillId, opts, G.rng);
+    if (!r.ok) { G.history.pop(); toast(r.reason); return null; }
+    G.pendingSkill = null; G.pendingTargets = null;
+    if (G.result) { renderPlay(); return r; }
+    renderPlay();
+    playFx(r, pre, () => { if (after) after(r); });
+    return r;
+  }
+
   // 実行
   function execAction() {
+    if (G.animating) return;
     const st = G.st;
     const id = G.pendingSkill;
     if (!id) return;
@@ -1841,19 +2019,15 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     if (cur === E.POWER.RANDOM && G.mode === 'support') { toast('まず「？」のぬいパワーを確定してください'); return; }
 
     if (G.mode === 'sim') {
-      pushHistory();
-      const r = E.act(st, id, { targets: G.pendingTargets }, G.rng);
-      if (!r.ok) { G.history.pop(); toast(r.reason); return; }
-      flashResult(r);
-      afterAction(r);
+      const r = doAct(id, { targets: G.pendingTargets }, (res) => {
+        if (res.shifted != null) toast('シフト結果：' + E.POWER_NAMES[res.shifted]);
+      });
+      if (r && sk.kind === 'util' && id === 'shitsuke') toast('しつけがけ（次の1回 威力2倍）');
     } else {
       // サポートモード: 乱数要素を入力で確定
       if (sk.kind === 'util') {
         if (id === 'shift') { openShiftPicker(); return; }
-        pushHistory();
-        const r = E.act(st, id, { targets: G.pendingTargets }, G.rng);
-        if (!r.ok) { G.history.pop(); toast(r.reason); return; }
-        afterAction(r, true);
+        doAct(id, { targets: G.pendingTargets }, (res) => supportFollowups(res));
       } else if (id === 'midare') {
         openMidarePicker(sk);
       } else {
@@ -1862,29 +2036,9 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     }
   }
 
-  function afterAction(r, support) {
-    G.pendingSkill = null; G.pendingTargets = null;
-    // 再生の実測補正（サポート時）
-    if (support && r.regen) {
-      openRegenAdjust(r.regen);
-      return;
-    }
-    // ピンク布グロウ対象の実測補正
-    if (support && E.clothPhase(G.st) === 'pinkGlow') {
-      openGlowPicker();
-      return;
-    }
-    renderPlay();
-  }
-
-  function flashResult(r) {
-    if (!r.hits || !r.hits.length) return;
-    const msg = r.hits.map(h => {
-      if (h.shitsuke) return 'しつけがけ';
-      if (h.heal != null) return `回復 ${h.heal}`;
-      return `${h.dmg}${h.crit ? '（会心！）' : ''}`;
-    }).join(' / ');
-    toast(`${E.POWER_NAMES[r.power]}：${msg}${r.regen ? `　◆再生 -${r.regen.heal}` : ''}`);
+  function supportFollowups(r) {
+    if (r.regen) { openRegenAdjust(r.regen); return; }
+    if (E.clothPhase(G.st) === 'pinkGlow') { openGlowPicker(); return; }
   }
 
   // ---------- サポート: 実測ロール入力 ----------
@@ -1919,15 +2073,12 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     }).join('');
     openModal(`${sk.name}（${E.POWER_NAMES[pw]}）の結果を入力`, body, () => {
       if (picks.some(p => p == null)) { toast('すべてのマスの数値を選んでください'); return false; }
-      pushHistory();
-      const r = E.act(st, sk.id, {
+      const r = doAct(sk.id, {
         targets: G.pendingTargets,
         forcedRolls: picks.map(p => p.roll),
         forcedCrits: picks.map(p => p.crit),
-      }, G.rng);
-      if (!r.ok) { G.history.pop(); toast(r.reason); return false; }
-      afterAction(r, true);
-      return true;
+      }, (res) => supportFollowups(res));
+      return !!r;
     });
     $$('#modal .chip').forEach(ch => {
       ch.onclick = () => {
@@ -1955,11 +2106,8 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       });
       if (!deltas.length) { toast('少なくとも1マスの数値を入力してください'); return false; }
       if (deltas.length > 4) { toast('みだれぬいは最大4マスです'); return false; }
-      pushHistory();
-      const r = E.act(st, 'midare', { forcedDeltas: deltas }, G.rng);
-      if (!r.ok) { G.history.pop(); toast(r.reason); return false; }
-      afterAction(r, true);
-      return true;
+      const r = doAct('midare', { forcedDeltas: deltas }, (res) => supportFollowups(res));
+      return !!r;
     });
   }
 
@@ -1972,11 +2120,8 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     let chosen = null;
     openModal('ぬいパワーシフトの結果', body, () => {
       if (chosen == null) { toast('結果を選んでください'); return false; }
-      pushHistory();
-      const r = E.act(st, 'shift', { forcedShift: chosen }, G.rng);
-      if (!r.ok) { G.history.pop(); toast(r.reason); return false; }
-      afterAction(r, true);
-      return true;
+      const r = doAct('shift', { forcedShift: chosen }, (res) => supportFollowups(res));
+      return !!r;
     });
     $$('#modal .chip').forEach(ch => ch.onclick = () => { chosen = +ch.dataset.p; $$('#modal .chip').forEach(o => o.classList.remove('on')); ch.classList.add('on'); });
   }
@@ -2348,6 +2493,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     $('#st-samples').value = settings.aiSamples;
     $('#st-time').value = settings.aiTime;
     $('#st-lv').value = settings.lvLimit;
+    $('#st-fx').value = settings.fx || 'full';
     const list = $('#st-skills');
     list.innerHTML = '';
     E.SKILLS.forEach(s => {
@@ -2367,6 +2513,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     settings.aiSamples = Math.min(200, Math.max(4, +$('#st-samples').value || 24));
     settings.aiTime = Math.min(10000, Math.max(300, +$('#st-time').value || 1800));
     settings.lvLimit = Math.max(0, +$('#st-lv').value || 0);
+    settings.fx = $('#st-fx').value;
     settings.skillCosts = {};
     $$('#st-skills input').forEach(inp => {
       const def = E.SKILLS.find(s => s.id === inp.dataset.id);
