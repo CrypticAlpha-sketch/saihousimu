@@ -1475,8 +1475,12 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   const PAT_A = [0, 5, 3, 5, 5, 1, 1, 2, 5]; // 叡聖・月影・ノクトル
   const PAT_B = [1, 3, 5, 2, 5, 0, 5, 5];    // アンティク・烈風・妖精郷
   const SRC = '実測データ（画像より）。パターンのループ開始位置は要確認（既定=先頭）。';
+  const PART_ALLOW = { '頭': 2, '体上': 8, '体下': 4, '腕': 3, '足': 2 };
+  function allowOf(part, cellCount) {
+    return PART_ALLOW[part] != null ? PART_ALLOW[part] : Math.max(0, cellCount - 2);
+  }
   function P(id, name, part, cloth, pattern, cells) {
-    return { id, name, part, cloth, pattern: pattern.slice(), patternLoop: 0, allow: Math.max(0, cells.length - 2), cells, note: SRC };
+    return { id, name, part, cloth, pattern: pattern.slice(), patternLoop: 0, allow: allowOf(part, cells.length), cells, note: SRC };
   }
   const PRESET_ITEMS = [
     // ---- 叡聖の博士服（体下はデータ非公開のため未収録） ----
@@ -1514,12 +1518,12 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     P('yousei_btm', '妖精郷の舞踏服・体下', '体下', 'rainbow', PAT_B, cellsRect(3, 2, [80, 270, 260, 100, 140, 290])),
     P('yousei_arm', '妖精郷の舞踏服・腕', '腕', 'rainbow', PAT_B, cellsRect(2, 3, [220, 90, 190, 380, 130, 290])),
     P('yousei_foot', '妖精郷の舞踏服・足', '足', 'pink', PAT_B, cellsRect(2, 2, [510, 140, 210, 490])),
-    // ---- 練習用サンプル ----
+    // ---- 低レベル商材 ----
     {
-      id: 'p_kawa_tebukuro', name: '皮のてぶくろ（サンプル）', part: '腕', allow: 2, sample: true,
-      cells: cellsRect(2, 2, 15),
+      id: 'p_kawa_tebukuro', name: '皮のてぶくろ', part: '腕', allow: 3,
+      cells: cellsRect(2, 3, 15),
       pattern: [1, 0, 1, 2, 0, 1], patternLoop: 0, cloth: 'none',
-      note: '基準値15は攻略情報で確認済み。ぬいパワー順は実機で確認して修正してください。',
+      note: '基準値15×6マス。縫い手順（ぬいパワー順）は実機で確認して必要なら修正してください。',
     },
   ];
 
@@ -2222,7 +2226,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   function openItemEditor(idx) {
     editIdx = idx;
     const isNew = idx == null;
-    const it = isNew ? { id: 'u' + Date.now(), name: '新しい商材', part: '体上', allow: 7, cells: cellsRect(3, 3, 50), pattern: [1, 2, 3, 0], patternLoop: 0, cloth: 'none' } : JSON.parse(JSON.stringify(items[idx]));
+    const it = isNew ? { id: 'u' + Date.now(), name: '新しい商材', part: '体上', allow: allowOf('体上', 9), cells: cellsRect(3, 3, 50), pattern: [1, 2, 3, 0], patternLoop: 0, cloth: 'none' } : JSON.parse(JSON.stringify(items[idx]));
     const cellMap = {};
     it.cells.forEach(c => cellMap[c.r + ',' + c.c] = c.std);
     let gridHtml = '';
@@ -2269,6 +2273,11 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       saveItems(); renderData();
       return true;
     });
+    // 部位変更時に許容誤差の目安を自動セット
+    $('#ie-part').onchange = () => {
+      const cnt = $$('#modal .ed-c.on').length || it.cells.length;
+      $('#ie-allow').value = allowOf($('#ie-part').value, cnt);
+    };
     // grid toggles
     $$('#modal .ed-c').forEach(el => {
       el.querySelector('.ed-tgl').onclick = () => {
