@@ -596,6 +596,24 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
 .lk-crit{display:block;font-style:normal;font-size:10px;color:var(--gold);margin-top:1px}
 @media (prefers-reduced-motion:reduce){.pw-poof,.pw-land,.pw-hold,.fx-ring{animation:none}}
 
+
+/* 成績カード・統計 */
+#stats-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:11px 14px;
+  margin-bottom:10px;box-shadow:0 3px 0 var(--thick)}
+#stats-card:active{transform:translateY(2px);box-shadow:0 1px 0 var(--thick)}
+#stats-card.hide{display:none}
+.stc-l{text-align:center;flex-shrink:0}
+.stc-l b{display:block;font-family:var(--num);font-size:24px;color:var(--gold);line-height:1.1}
+.stc-l span{font-size:10px;color:var(--tx-dim)}
+.stc-r{font-size:12px;color:var(--tx);line-height:1.5}
+.stc-r small{color:var(--tx-dim)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
+.stats-grid>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:9px 4px;text-align:center}
+.stats-grid b{display:block;font-family:var(--num);font-size:19px;color:var(--gold)}
+.stats-grid span{font-size:10px;color:var(--tx-dim)}
+
 </style>
 </head>
 <body>
@@ -607,6 +625,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
 <!-- ホーム -->
 <section class="screen active" id="scr-home">
   <div class="apph"><h1>さいほう工房</h1><span class="sub">DQX 裁縫シミュレーター＆サポート</span></div>
+  <button id="stats-card" class="hide"></button>
   <div class="sub-row" id="part-filter"></div>
   <div id="item-list"></div>
   <p class="hint">商材をタップすると開始メニューが開きます。シミュレーション＝乱数で本番同様に練習／実機サポート＝ゲームの結果を入力しながら分布・逆引き・AIで次の一手を検討。</p>
@@ -914,6 +933,14 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     return p;
   }
 
+  // ？パワーの抽選確定（ターン開始時に呼ぶ・5種等確率）
+  function resolveRandom(st, rng) {
+    if (currentPower(st, null, false) !== POWER.RANDOM) return null;
+    const v = Math.floor((rng ? rng() : Math.random()) * 5);
+    st.resolvedRandom[st.turn] = v;
+    return v;
+  }
+
   // 精神統一適用後の「このターンのパワー」
   function currentPower(st, rng, resolve) {
     if (st.heldPower != null && st.seishin > 0) return st.heldPower;
@@ -927,12 +954,15 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   }
 
   // ---- 布特性 ----
+  // 発動ターン: 5,9,13,…（開始から4ターン経過ごと。実機観測により4,8,12…から+1修正）
+  // 虹布: 5,13,21…=消費半減 / 9,17,25…=会心アップ(消費1.5倍)
+  function clothTurnActive(t) { return t > 1 && t % 4 === 1; }
+  function nextClothTurn(t) { let x = Math.max(2, t); while (!clothTurnActive(x)) x++; return x; }
   function clothPhase(st) {
-    // 4の倍数ターンに効果。虹布: 8n-4=集中半減 / 8n=会心アップ
     const t = st.turn;
     const cloth = st.item.cloth;
-    if (t % 4 !== 0 || cloth === 'none' || !cloth) return null;
-    if (cloth === 'rainbow') return (t % 8 === 4) ? 'rainbowHalf' : 'rainbowCrit';
+    if (!clothTurnActive(t) || cloth === 'none' || !cloth) return null;
+    if (cloth === 'rainbow') return (t % 8 === 5) ? 'rainbowHalf' : 'rainbowCrit';
     if (cloth === 'pink') return 'pinkGlow';
     if (cloth === 'regen') return 'regenTurn'; // ターン終了時に回復
     return null;
@@ -1557,7 +1587,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   const API = {
     POWER, POWER_NAMES, POWER_SHORT, T, REGEN_HEAL, SKILLS,
     makeRng, createState, act, endTurn, finishResult, patternPowerAt, powerAt,
-    currentPower, nextPowerPreview, clothPhase, effectiveCost, critRate,
+    currentPower, nextPowerPreview, resolveRandom, clothPhase, clothTurnActive, nextClothTurn, effectiveCost, critRate,
     legalActions, cloneState, recommend, lookupMoves, comboMoves, critAwareMoves, actionDistribution, evalState, zeroProb,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
@@ -1671,6 +1701,18 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     skillCosts: {},
   };
   let settings = Object.assign({}, DEFAULT_SETTINGS, store.get('settings', {}));
+  let records = store.get('records', []);
+  function saveRecords() { if (records.length > 500) records = records.slice(-500); store.set('records', records); }
+  function recordStats(list) {
+    const n = list.length;
+    if (!n) return null;
+    const big = list.filter(r => r.big).length;
+    const perfect = list.filter(r => r.perfect).length;
+    const avgErr = list.reduce((s, r) => s + r.totalError, 0) / n;
+    const stars = [0, 0, 0, 0];
+    list.forEach(r => stars[r.stars]++);
+    return { n, big, bigRate: big / n, perfect, avgErr, stars };
+  }
   let items = store.get('items', null);
   if (!items) { items = PRESET_ITEMS.map(x => JSON.parse(JSON.stringify(x))); store.set('items', items); }
 
@@ -1709,6 +1751,16 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     const parts = ['すべて', '頭', '体上', '体下', '腕', '足'];
     pf.innerHTML = parts.map(p => `<button class="mini pfb ${p === partFilter ? 'on' : ''}">${p}</button>`).join('');
     $$('.pfb', pf).forEach(b => b.onclick = () => { partFilter = b.textContent; renderHome(); });
+    // 成績サマリ
+    const sc = $('#stats-card');
+    const stAll = recordStats(records);
+    if (stAll) {
+      sc.classList.remove('hide');
+      sc.innerHTML = `<div class="stc-l"><b>${(stAll.bigRate * 100).toFixed(1)}%</b><span>大成功率</span></div>
+        <div class="stc-r">${stAll.n}回 ／ 平均誤差 ${stAll.avgErr.toFixed(1)} ／ 完全一致 ${stAll.perfect}回<br>
+        <small>タップで詳細・履歴</small></div>`;
+      sc.onclick = openStatsModal;
+    } else sc.classList.add('hide');
     const list = $('#item-list');
     list.innerHTML = '';
     let lastSet = null;
@@ -1753,6 +1805,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       `<span class="pwchip ${PW_CLASS[p]}">${E.POWER_SHORT[p]}${k === it.patternLoop ? `<span class="lp">${SVG.loop}</span>` : ''}</span>`).join('');
     const body = `
       <div class="sheet-meta"><span>${esc(it.part)}・${it.cells.length}マス・大成功 誤差${it.allow}以内</span>${CLOTH_CHIP[it.cloth] || ''}</div>
+      ${(() => { const st2 = recordStats(records.filter(r => r.itemId === it.id)); return st2 ? `<p class="hint" style="margin-top:-4px">この商材の記録：${st2.n}回・大成功率 ${(st2.bigRate * 100).toFixed(1)}%・平均誤差 ${st2.avgErr.toFixed(1)}</p>` : ''; })()}
       <div class="sh-grid" style="grid-template-columns:repeat(${cols},1fr)">${grid}</div>
       <div class="sh-pat">${pat}</div>
       ${it.note ? `<p class="hint">${esc(it.note)}</p>` : ''}
@@ -1813,6 +1866,11 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     const fp = Math.max(0, Math.min(100, st.focus / st.focusMax * 100));
     $('#p-focusbar').style.width = fp + '%';
 
+    // ？ぬいパワー: シミュは到来時に自動抽選（シフト同様のランダム）
+    let revealed = null;
+    if (G.mode === 'sim' && !G.result && E.currentPower(st, null, false) === E.POWER.RANDOM) {
+      revealed = E.resolveRandom(st, G.rng);
+    }
     // ぬいパワー
     const cur = E.currentPower(st, null, false);
     const nxt = E.nextPowerPreview(st);
@@ -1820,6 +1878,8 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     setPowerChip($('#pw-next'), nxt);
     $('#pw-now').classList.toggle('pw-hold', st.seishin > 0);
     $('#pw-flavor').textContent = PW_FLAVOR[cur] || '';
+    if (revealed != null) revealRandomFx();
+    if (G.mode === 'support') setTimeout(maybeAskRandom, 120);
     $('#pw-seishin').classList.toggle('hide', !(st.seishin > 0));
     $('#pw-seishin').textContent = `精神統一 残${st.seishin}`;
     if (G.mode === 'support' && cur === E.POWER.RANDOM) {
@@ -1837,9 +1897,8 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     else {
       const c = st.item.cloth;
       if (c && c !== 'none') {
-        const next4 = 4 - (st.turn % 4 || 4) + st.turn + (st.turn % 4 === 0 ? 0 : 0);
-        const rem = st.turn % 4 === 0 ? 0 : 4 - st.turn % 4;
-        fx.textContent = `${clothName(c)}（次の効果まで ${rem === 0 ? 0 : rem} ターン）`;
+        const rem = E.nextClothTurn(st.turn) - st.turn;
+        fx.textContent = `${clothName(c)}（次の効果まで ${rem} ターン）`;
       } else fx.textContent = '布特性なし';
     }
 
@@ -2132,6 +2191,25 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       done && done();
     }, level === 'fast' ? 450 : 820);
   }
+  // ？→実パワー開示（ポワン）
+  function revealRandomFx() {
+    const level = settings.fx || 'full';
+    const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (level === 'off' || reduced) return;
+    const now = $('#pw-now');
+    now.classList.add('pw-poof');
+    spawnBurstAt($('.pwband'), now);
+    setTimeout(() => now.classList.remove('pw-poof'), 380);
+  }
+  // サポート: ？ターン到来時に確定ピッカーを自動表示（1ターン1回・キャンセル後はボタンから）
+  function maybeAskRandom() {
+    if (!G || G.mode !== 'support' || G.result || G.animating) return;
+    if (!$('#modal').classList.contains('hide')) return;
+    if (E.currentPower(G.st, null, false) !== E.POWER.RANDOM) return;
+    if (G.askedRand === G.st.turn) return;
+    G.askedRand = G.st.turn;
+    openRandResolve();
+  }
   function spawnBurstAt(container, anchor, mint) {
     if (!container || !anchor) return;
     const cr = container.getBoundingClientRect();
@@ -2165,13 +2243,14 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     G.pendingSkill = null; G.pendingTargets = null;
     if (G.result) { renderPlay(); return r; }
     renderPlay();
+    const fin = () => { if (after) after(r); maybeAskRandom(); };
     if (skillId === 'shift') {
       const prevPw = st.resolvedRandom[oldTurn] != null ? st.resolvedRandom[oldTurn] : prevPwPre;
-      shiftFx(prevPw, r.shifted, () => { if (after) after(r); });
+      shiftFx(prevPw, r.shifted, fin);
     } else if (skillId === 'seishin') {
-      seishinFx(() => { if (after) after(r); });
+      seishinFx(fin);
     } else {
-      playFx(r, pre, () => { if (after) after(r); });
+      playFx(r, pre, fin);
     }
     return r;
   }
@@ -2365,8 +2444,24 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
 
   // ---------- しあげる ----------
   function finish() {
-    const f = E.finishResult(G.st);
+    const st = G.st;
+    const f = E.finishResult(st);
     G.result = f;
+    // 記録保存（無操作の即しあげは除外 / 戻って再仕上げは上書き）
+    const acted = st.turn > 1 || st.cells.some(c => c.dmg > 0);
+    if (acted) {
+      const rec = {
+        id: G.recordId || ('r' + Date.now() + Math.floor(Math.random() * 1000)),
+        itemId: st.item.id, itemName: st.item.name, part: st.item.part, cloth: st.item.cloth,
+        mode: G.mode, stars: f.stars, big: f.big, perfect: f.perfect,
+        totalError: f.totalError, allow: f.allow,
+        turns: st.turn - 1, focusLeft: st.focus, date: Date.now(),
+      };
+      const ex = records.findIndex(r => r.id === rec.id);
+      if (ex >= 0) records[ex] = rec; else records.push(rec);
+      G.recordId = rec.id;
+      saveRecords();
+    }
     renderResult();
   }
   function renderResult() {
@@ -2707,6 +2802,49 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   }
 
   // ---------- 共通UI ----------
+  let statsFilter = 'all';
+  function openStatsModal() {
+    const filtered = statsFilter === 'all' ? records : records.filter(r => r.mode === statsFilter);
+    const stAll = recordStats(filtered);
+    const byItem = {};
+    filtered.forEach(r => { (byItem[r.itemId] = byItem[r.itemId] || []).push(r); });
+    const itemRows = Object.entries(byItem)
+      .map(([id, list]) => ({ name: list[0].itemName, s: recordStats(list) }))
+      .sort((a, b) => b.s.n - a.s.n)
+      .map(x => `<div class="lk-row"><span class="lk-n">${esc(x.name)}</span>
+        <span class="lk-cost">${x.s.n}回</span><span class="lk-p">${(x.s.bigRate * 100).toFixed(0)}%</span></div>`).join('');
+    const recent = filtered.slice(-8).reverse().map(r => {
+      const d = new Date(r.date);
+      const stars = '★'.repeat(r.stars) + '☆'.repeat(3 - r.stars);
+      return `<div class="lk-row"><span class="lk-n">${esc(r.itemName)}<i class="lk-crit">${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}・${r.mode === 'sim' ? 'シミュ' : '実機'}・${r.turns}T</i></span>
+        <span class="lk-cost">誤差${r.totalError}</span><span class="lk-p">${stars}</span></div>`;
+    }).join('');
+    const body = `
+      <div class="chips" style="margin-bottom:10px">
+        <button class="chip stf ${statsFilter === 'all' ? 'on' : ''}" data-f="all">すべて</button>
+        <button class="chip stf ${statsFilter === 'sim' ? 'on' : ''}" data-f="sim">シミュ</button>
+        <button class="chip stf ${statsFilter === 'support' ? 'on' : ''}" data-f="support">実機</button>
+      </div>
+      ${stAll ? `
+      <div class="stats-grid">
+        <div><b>${stAll.n}</b><span>回数</span></div>
+        <div><b>${(stAll.bigRate * 100).toFixed(1)}%</b><span>大成功率</span></div>
+        <div><b>${stAll.perfect}</b><span>完全一致</span></div>
+        <div><b>${stAll.avgErr.toFixed(1)}</b><span>平均誤差</span></div>
+      </div>
+      <div class="lk-sec">★内訳</div>
+      <div class="chips">${[3, 2, 1, 0].map(k => `<span class="chip" style="pointer-events:none">★${k}：${stAll.stars[k]}回</span>`).join('')}</div>
+      <div class="lk-sec">商材別（大成功率）</div>
+      <div class="lk-list">${itemRows}</div>
+      <div class="lk-sec">最近の記録</div>
+      <div class="lk-list">${recent}</div>
+      <button class="mini danger" id="stats-clear" style="margin-top:12px">記録をすべて削除</button>
+      ` : '<p class="hint">この条件の記録はまだありません。</p>'}`;
+    openModal('裁縫の成績', body, () => true, true);
+    $$('#modal .stf').forEach(b => b.onclick = () => { statsFilter = b.dataset.f; openStatsModal(); });
+    const clr = $('#stats-clear');
+    if (clr) clr.onclick = () => confirmModal('記録の削除', 'すべての裁縫記録を削除します。よろしいですか？', () => { records = []; saveRecords(); openStatsModal(); renderHome(); });
+  }
   function confirmModal(title, message, onYes) {
     openModal(title, `<p style="font-size:14px;margin:4px 0 10px">${message}</p>`, () => { onYes(); return true; });
   }
