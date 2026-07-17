@@ -574,6 +574,28 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   .fx-num,.fx-star,.fx-needle{animation:none;display:none}
   .fx-shake{animation:none}}
 
+
+/* シフト・精神統一エフェクト */
+.pwband{position:relative;overflow:visible}
+.pw-poof{animation:pwPoof .3s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pwPoof{0%{transform:scale(.2);opacity:0;filter:blur(4px)}
+  60%{transform:scale(1.22);opacity:1;filter:blur(0)}100%{transform:scale(1)}}
+.pw-land{animation:pwLand .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pwLand{0%{transform:scale(.6)}55%{transform:scale(1.28)}100%{transform:scale(1)}}
+.pw-hold{box-shadow:0 0 0 2px var(--wakaba),0 0 12px 2px rgba(140,225,185,.55)!important;
+  animation:pwHold 1.6s ease-in-out infinite}
+@keyframes pwHold{0%,100%{box-shadow:0 0 0 2px var(--wakaba),0 0 8px 1px rgba(140,225,185,.4)}
+  50%{box-shadow:0 0 0 2px var(--wakaba),0 0 16px 4px rgba(140,225,185,.7)}}
+.fx-ring{position:absolute;left:50%;top:50%;width:20px;height:20px;border:3px solid rgba(150,230,195,.9);
+  border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:26;
+  animation:fxRing .8s ease-out forwards}
+.fx-ring.d2{animation-delay:.16s;border-color:rgba(190,240,215,.7)}
+@keyframes fxRing{0%{width:20px;height:20px;opacity:1}100%{width:220px;height:220px;opacity:0}}
+.fx-star.mint svg{fill:#a8ecc8;filter:drop-shadow(0 0 5px rgba(150,235,195,.9))}
+.pwband .fx-star{z-index:27}
+.lk-crit{display:block;font-style:normal;font-size:10px;color:var(--gold);margin-top:1px}
+@media (prefers-reduced-motion:reduce){.pw-poof,.pw-land,.pw-hold,.fx-ring{animation:none}}
+
 </style>
 </head>
 <body>
@@ -1419,9 +1441,47 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     return { power: pw, cost: effectiveCost(st, sk.cost), perCell: perCell };
   }
 
-  // ---- 2手コンボ逆引き ----
-  // rem を「1手目→(外れたら)2手目」でちょうど0にする成功率
-  // 前提: 会心・しつけ・布特性なし、ほぐしの下限クリップなし（基準値が十分大きい想定）
+  // ---- 会心考慮の逆引き ----
+  // 会心仕様: 2倍ダメージが残りrem以上なら「ぴったり残りぶん」で止まる(rem>0時) / 超過セルでは0ダメージ
+  function critChance(baseCrit, critMul, isCrit2Power) {
+    let r = baseCrit * (critMul || 1);
+    if (isCrit2Power) r += baseCrit;
+    return Math.min(100, r) / 100;
+  }
+  const AWARE_SKILLS = [
+    { table: 'nuu', name: 'ぬう', cost: 5 },
+    { table: 'kagen', name: 'かげんぬい', cost: 10 },
+    { table: 'x2', name: '2倍ぬい', cost: 9 },
+    { table: 'x3', name: '3倍ぬい', cost: 12 },
+    { table: 'han', name: '半かげんぬい', cost: 12 },
+    { table: 'nuu', name: 'ねらいぬい', cost: 16, critMul: 8, nerai: true },
+  ];
+  // 1手で誤差0にできる確率（会心ピタ込み・全パワー×特技）
+  function critAwareMoves(rem, opts) {
+    opts = opts || {};
+    const baseCrit = opts.baseCrit || 0;
+    const costOf = opts.costOf || (m => m.cost);
+    if (rem <= 0) return [];
+    const out = [];
+    for (const sk of AWARE_SKILLS) {
+      for (let p = 0; p <= 4; p++) { // 4 = 会心×2パワー
+        const rolls = T[sk.table][p === 4 ? 1 : p];
+        const c = critChance(baseCrit, sk.critMul, p === 4);
+        let exact = 0, pita = 0;
+        for (const v of rolls) {
+          if (v === rem) exact += (1 - c) / 7;
+          if (2 * v >= rem) pita += c / 7;
+        }
+        const prob = exact + pita;
+        if (prob > 1e-9) out.push({ name: sk.name, table: sk.table, power: p, prob: prob, critPart: pita, cost: costOf(sk), nerai: !!sk.nerai });
+      }
+    }
+    out.sort((a, b) => b.prob - a.prob || a.cost - b.cost);
+    return out;
+  }
+
+  // ---- 2手コンボ逆引き（会心ピタ込み） ----
+  // しつけ・布特性・回復下限クリップは考慮しない
   const COMBO_MOVES = (() => {
     const defs = [
       { table: 'nuu', name: 'ぬう', cost: 5, heal: false },
@@ -1429,41 +1489,64 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       { table: 'x2', name: '2倍ぬい', cost: 9, heal: false },
       { table: 'x3', name: '3倍ぬい', cost: 12, heal: false },
       { table: 'han', name: '半かげんぬい', cost: 12, heal: false },
+      { table: 'nuu', name: 'ねらいぬい', cost: 16, heal: false, critMul: 8 },
       { table: 'hogushi', name: '糸ほぐし', cost: 16, heal: true },
     ];
     const out = [];
-    for (const d of defs) for (let p = 0; p < 4; p++) {
-      out.push({ table: d.table, name: d.name, cost: d.cost, heal: d.heal, power: p, rolls: T[d.table][p] });
+    for (const d of defs) {
+      const maxP = d.heal ? 3 : 4; // 会心×2はぬい系のみ
+      for (let p = 0; p <= maxP; p++) {
+        out.push({ table: d.table, name: d.name, cost: d.cost, heal: d.heal, critMul: d.critMul, power: p, rolls: T[d.table][p === 4 ? 1 : p] });
+      }
     }
     return out;
   })();
 
+  // 1手の結果分岐 [(残り値, 確率)]（会心込み）
+  function moveBranches(m, r, baseCrit) {
+    const out = [];
+    if (m.heal) {
+      for (const v of m.rolls) out.push([r + v, 1 / 7]);
+      return out;
+    }
+    const c = critChance(baseCrit, m.critMul, m.power === 4);
+    for (const v of m.rolls) {
+      if (1 - c > 1e-12) out.push([r - v, (1 - c) / 7]);
+      if (c > 1e-12) {
+        const dealt = (2 * v >= r) ? Math.max(0, r) : 2 * v; // ピタ止め／超過セルは0
+        out.push([r - dealt, c / 7]);
+      }
+    }
+    return out;
+  }
+  function moveZeroProb(m, r, baseCrit) {
+    let p = 0;
+    for (const br of moveBranches(m, r, baseCrit)) if (br[0] === 0) p += br[1];
+    return p;
+  }
+
   function comboMoves(rem, opts) {
     opts = opts || {};
+    const baseCrit = opts.baseCrit || 0;
     const costOf = opts.costOf || (m => m.cost);
     const results = [];
     for (const m1 of COMBO_MOVES) {
-      // 1手目の結果分布
       let hit1 = 0;
-      const misses = {}; // 残り値 -> 出現数
-      for (const v of m1.rolls) {
-        const r2 = m1.heal ? rem + v : rem - v;
-        if (r2 === 0) hit1++;
-        else misses[r2] = (misses[r2] || 0) + 1;
+      const misses = {};
+      for (const br of moveBranches(m1, rem, baseCrit)) {
+        if (br[0] === 0) hit1 += br[1];
+        else misses[br[0]] = (misses[br[0]] || 0) + br[1];
       }
       for (const m2 of COMBO_MOVES) {
-        let cnt = 0;
+        let rescue = 0;
         for (const r2s in misses) {
-          const r2 = +r2s;
-          for (const v of m2.rolls) {
-            const r3 = m2.heal ? r2 + v : r2 - v;
-            if (r3 === 0) cnt += misses[r2s];
-          }
+          const w = misses[r2s];
+          if (w < 1e-12) continue;
+          rescue += w * moveZeroProb(m2, +r2s, baseCrit);
         }
-        // 2手目が1手目の外れを救える組み合わせのみ（救えないなら単発と同じで無意味）
-        if (cnt > 0) {
-          const prob = hit1 / 7 + cnt / 49;
-          results.push({ m1: m1, m2: m2, prob: prob, hit1: hit1 / 7, rescue: cnt / 49, cost: costOf(m1) + costOf(m2) });
+        // 2手目が1手目の外れを救える組み合わせのみ
+        if (rescue > 1e-9) {
+          results.push({ m1: m1, m2: m2, prob: hit1 + rescue, hit1: hit1, rescue: rescue, cost: costOf(m1) + costOf(m2) });
         }
       }
     }
@@ -1475,7 +1558,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     POWER, POWER_NAMES, POWER_SHORT, T, REGEN_HEAL, SKILLS,
     makeRng, createState, act, endTurn, finishResult, patternPowerAt, powerAt,
     currentPower, nextPowerPreview, clothPhase, effectiveCost, critRate,
-    legalActions, cloneState, recommend, lookupMoves, comboMoves, actionDistribution, evalState, zeroProb,
+    legalActions, cloneState, recommend, lookupMoves, comboMoves, critAwareMoves, actionDistribution, evalState, zeroProb,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   else global.SaihouEngine = API;
@@ -1735,6 +1818,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     const nxt = E.nextPowerPreview(st);
     setPowerChip($('#pw-now'), cur);
     setPowerChip($('#pw-next'), nxt);
+    $('#pw-now').classList.toggle('pw-hold', st.seishin > 0);
     $('#pw-flavor').textContent = PW_FLAVOR[cur] || '';
     $('#pw-seishin').classList.toggle('hide', !(st.seishin > 0));
     $('#pw-seishin').textContent = `精神統一 残${st.seishin}`;
@@ -1994,17 +2078,101 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     }
     toast('再生布：マス（' + (G.st.cells[result.regen.cell].r + 1) + ',' + (G.st.cells[result.regen.cell].c + 1) + '）が ' + result.regen.heal + ' もどった');
   }
+  // ぬいパワーシフト: 旧いまを表示したまま、右に結果がポワンと出て左へスライド
+  function shiftFx(prevPower, resultPower, done) {
+    const level = settings.fx || 'full';
+    const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const now = $('#pw-now'), next = $('#pw-next');
+    if (level === 'off' || reduced || !now || !next) { done && done(); return; }
+    G.animating = true;
+    const sp = level === 'fast' ? 0.6 : 1;
+    // 結果の先バレ防止: 左は旧パワーのまま、右に結果をポワン
+    setPowerChip(now, prevPower);
+    setPowerChip(next, resultPower);
+    next.classList.add('pw-poof');
+    setTimeout(() => {
+      // 右→左へスライド（FLIP）
+      const dx = now.getBoundingClientRect().left - next.getBoundingClientRect().left;
+      next.classList.remove('pw-poof');
+      next.style.transition = `transform ${Math.round(260 * sp)}ms cubic-bezier(.3,.9,.3,1)`;
+      next.style.transform = `translateX(${dx}px)`;
+      now.style.transition = `opacity ${Math.round(180 * sp)}ms ease`;
+      now.style.opacity = '0';
+      setTimeout(() => {
+        next.style.transition = ''; next.style.transform = '';
+        now.style.transition = ''; now.style.opacity = '';
+        G.animating = false;
+        renderPlay(); // いま=結果 / つぎ=パターン表示に確定
+        $('#pw-now').classList.add('pw-land');
+        setTimeout(() => $('#pw-now').classList.remove('pw-land'), 360);
+        done && done();
+      }, 290 * sp);
+    }, 300 * sp);
+  }
+  // 精神統一: 集中の波紋 + いまチップの保持オーラ
+  function seishinFx(done) {
+    const level = settings.fx || 'full';
+    const reduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const band = $('.pwband');
+    if (level === 'off' || reduced || !band) { done && done(); return; }
+    G.animating = true;
+    const ring = document.createElement('span');
+    ring.className = 'fx-ring';
+    band.appendChild(ring);
+    const ring2 = document.createElement('span');
+    ring2.className = 'fx-ring d2';
+    band.appendChild(ring2);
+    spawnBurstAt(band, $('#pw-now'), true);
+    $('#pw-now').classList.add('pw-land');
+    setTimeout(() => {
+      ring.remove(); ring2.remove();
+      $('#pw-now').classList.remove('pw-land');
+      G.animating = false;
+      renderPlay();
+      done && done();
+    }, level === 'fast' ? 450 : 820);
+  }
+  function spawnBurstAt(container, anchor, mint) {
+    if (!container || !anchor) return;
+    const cr = container.getBoundingClientRect();
+    const ar = anchor.getBoundingClientRect();
+    const cx = ar.left - cr.left + ar.width / 2;
+    const cy = ar.top - cr.top + ar.height / 2;
+    for (let k = 0; k < 8; k++) {
+      const p = document.createElement('span');
+      p.className = 'fx-star' + (mint ? ' mint' : '');
+      p.innerHTML = STAR_FX;
+      p.style.left = cx + 'px';
+      p.style.top = cy + 'px';
+      const ang = (k / 8) * Math.PI * 2 + Math.random() * 0.6;
+      const dist = 34 + Math.random() * 22;
+      p.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+      p.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+      p.style.setProperty('--sc', 0.7 + Math.random() * 0.5);
+      container.appendChild(p);
+      setTimeout(() => p.remove(), 700);
+    }
+  }
   // 行動の共通ラッパ: 履歴・実行・描画・演出
   function doAct(skillId, opts, after) {
     const st = G.st;
     pushHistory();
     const pre = st.cells.map(c => c.dmg);
+    const oldTurn = st.turn;
+    const prevPwPre = E.currentPower(st, null, false);
     const r = E.act(st, skillId, opts, G.rng);
     if (!r.ok) { G.history.pop(); toast(r.reason); return null; }
     G.pendingSkill = null; G.pendingTargets = null;
     if (G.result) { renderPlay(); return r; }
     renderPlay();
-    playFx(r, pre, () => { if (after) after(r); });
+    if (skillId === 'shift') {
+      const prevPw = st.resolvedRandom[oldTurn] != null ? st.resolvedRandom[oldTurn] : prevPwPre;
+      shiftFx(prevPw, r.shifted, () => { if (after) after(r); });
+    } else if (skillId === 'seishin') {
+      seishinFx(() => { if (after) after(r); });
+    } else {
+      playFx(r, pre, () => { if (after) after(r); });
+    }
     return r;
   }
 
@@ -2259,10 +2427,9 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     if (rem === 0) { openModal('このマスは誤差±0です', '<p class="hint">これ以上縫う必要はありません。しつけがけの対象などにどうぞ。</p>', () => true, true); return; }
     openModal(`残り ${rem > 0 ? rem : '超過' + (-rem)} の逆引き`, lookupHtml(rem), () => true, true);
   }
-  const COMBO_COST = { nuu: 'nuu', kagen: 'kagen', x2: 'x2', x3: 'x3', han: 'hankagen', hogushi: 'hogushi' };
+  const COMBO_COST = { 'ぬう': 'nuu', 'かげんぬい': 'kagen', '2倍ぬい': 'x2', '3倍ぬい': 'x3', '半かげんぬい': 'hankagen', 'ねらいぬい': 'nerai', '糸ほぐし': 'hogushi' };
   function comboCostOf(m) {
-    const id = COMBO_COST[m.table];
-    const def = skillDefs().find(sk => sk.id === id);
+    const def = skillDefs().find(sk => sk.id === COMBO_COST[m.name]);
     return def ? def.cost : m.cost;
   }
   function comboRow(c) {
@@ -2274,17 +2441,32 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       <span class="lk-p">${(c.prob * 100).toFixed(1)}%</span>
       ${c.hit1 > 0 ? `<span class="lk-note">1手目で即決 ${(c.hit1 * 100).toFixed(1)}% 込み</span>` : ''}</div>`;
   }
+  function awareRow(m) {
+    return `<div class="lk-row">
+      <span class="pwchip small ${PW_CLASS[m.power]}">${E.POWER_NAMES[m.power]}</span>
+      <span class="lk-n">${m.name}${m.critPart > 0.0005 ? `<i class="lk-crit">会心ピタ ${(m.critPart * 100).toFixed(1)}%込み</i>` : ''}</span>
+      <span class="lk-cost">${m.cost}</span>
+      <span class="lk-p">${(m.prob * 100).toFixed(1)}%</span></div>`;
+  }
   function lookupHtml(rem) {
-    const singles = E.lookupMoves(rem);
-    const combos = E.comboMoves(rem, { max: 10, costOf: comboCostOf });
+    const bc = settings.baseCrit;
+    const combos = E.comboMoves(rem, { max: 10, costOf: comboCostOf, baseCrit: bc });
     let h = '';
-    h += `<div class="lk-sec">1手でぴったり</div>`;
-    h += singles.length ? `<div class="lk-list">${singles.map(m => lkRow(m)).join('')}</div>`
-      : `<p class="hint">1手ちょうどで出せる縫い方はありません。</p>`;
+    if (rem > 0) {
+      const singles = E.critAwareMoves(rem, { baseCrit: bc, costOf: comboCostOf }).slice(0, 10);
+      h += `<div class="lk-sec">1手でぴったり（会心ピタ止め込み）</div>`;
+      h += singles.length ? `<div class="lk-list">${singles.map(m => awareRow(m)).join('')}</div>`
+        : `<p class="hint">1手でぴったりにできる縫い方はありません。</p>`;
+    } else {
+      const singles = E.lookupMoves(rem);
+      h += `<div class="lk-sec">1手でぴったり</div>`;
+      h += singles.length ? `<div class="lk-list">${singles.map(m => lkRow(m)).join('')}</div>`
+        : `<p class="hint">1手ちょうどで戻せる手はありません。</p>`;
+    }
     h += `<div class="lk-sec">2手コンボでぴったり（1手目で決まればそこで終了）</div>`;
     h += combos.length ? `<div class="lk-list">${combos.map(c => comboRow(c)).join('')}</div>`
       : `<p class="hint">2手以内でぴったりにする組み合わせが見つかりません。</p>`;
-    h += `<p class="hint">※会心・しつけ・布特性・回復下限は考慮しない目安です。消費は設定の特技コストに連動。</p>`;
+    h += `<p class="hint">※会心は基礎会心率 ${bc}%（設定値）で計算。「会心×2」はぬいパワーです。しつけ・布特性・回復下限は未考慮。</p>`;
     return h;
   }
   const TABLE_NAMES = { nuu: 'ぬう（等倍）', kagen: 'かげんぬい（0.5倍）', x2: '2倍ぬい', x3: '3倍ぬい', makiC: '巻きこみ・中心（1.5倍）', makiA: '巻き周囲／半かげん（0.75倍）', han: '半かげんぬい（0.75倍）', hogushi: '糸ほぐし', regen: '再生布' };
@@ -2362,7 +2544,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
         <div class="dr-btns"><button class="mini" data-a="edit">編集</button><button class="mini" data-a="copy">複製</button><button class="mini danger" data-a="del">削除</button></div>`;
       el.querySelector('[data-a=edit]').onclick = () => openItemEditor(i);
       el.querySelector('[data-a=copy]').onclick = () => { const cp = JSON.parse(JSON.stringify(it)); cp.id = 'u' + Date.now(); cp.name += '（複製）'; items.push(cp); saveItems(); renderData(); };
-      el.querySelector('[data-a=del]').onclick = () => { if (confirm('削除しますか？')) { items.splice(i, 1); saveItems(); if (selectedItem >= items.length) selectedItem = 0; renderData(); } };
+      el.querySelector('[data-a=del]').onclick = () => confirmModal('商材の削除', `「${esc(it.name)}」を削除しますか？`, () => { items.splice(i, 1); saveItems(); if (selectedItem >= items.length) selectedItem = 0; renderData(); });
       list.appendChild(el);
     });
   }
@@ -2525,6 +2707,9 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   }
 
   // ---------- 共通UI ----------
+  function confirmModal(title, message, onYes) {
+    openModal(title, `<p style="font-size:14px;margin:4px 0 10px">${message}</p>`, () => { onYes(); return true; });
+  }
   let modalOk = null;
   function openModal(title, bodyHtml, onOk, okOnly) {
     $('#modal-title').textContent = title;
@@ -2562,7 +2747,11 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   });
   $('#btn-exec').onclick = execAction;
   $('#btn-undo').onclick = undo;
-  $('#btn-finish').onclick = () => { if (confirm('しあげますか？')) finish(); };
+  $('#btn-finish').onclick = () => {
+    if (!G || G.animating) return;
+    const f = E.finishResult(G.st);
+    confirmModal('しあげる', `誤差合計 <b>${f.totalError}</b>（大成功ライン ${f.allow} 以内）<br>この内容でしあげますか？`, finish);
+  };
   $('#btn-ai').onclick = runAI;
   $('#btn-edit-state').onclick = openStateEditor;
   $('#rand-resolve').onclick = openRandResolve;
@@ -2570,7 +2759,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   $('#btn-new-item').onclick = () => openItemEditor(null);
   $('#btn-export').onclick = exportJson;
   $('#btn-import').onclick = importJson;
-  $('#btn-reset-presets').onclick = () => { if (confirm('プリセットを再読込・更新します（自作の商材は保持）')) { PRESET_ITEMS.forEach(p => { const ex = items.findIndex(i => i.id === p.id); if (ex >= 0) items[ex] = JSON.parse(JSON.stringify(p)); else items.push(JSON.parse(JSON.stringify(p))); }); saveItems(); renderData(); } };
+  $('#btn-reset-presets').onclick = () => confirmModal('プリセット再読込', 'プリセット商材を最新データに更新します（自作の商材は保持されます）。よろしいですか？', () => { PRESET_ITEMS.forEach(p => { const ex = items.findIndex(i => i.id === p.id); if (ex >= 0) items[ex] = JSON.parse(JSON.stringify(p)); else items.push(JSON.parse(JSON.stringify(p))); }); saveItems(); renderData(); toast('プリセットを更新しました'); });
   $('#btn-save-settings').onclick = saveSettings;
   $$('#st-presets button').forEach(b => b.onclick = () => {
     const [f, c] = b.dataset.v.split(',');
