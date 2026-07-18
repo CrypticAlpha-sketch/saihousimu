@@ -469,17 +469,27 @@ input,select,#io-text{border-radius:12px}
 /* 盤面: 残り空間にフィット・常に全マス表示 */
 #cloth{flex:1 1 auto;min-height:0;margin:8px 0 6px;overflow:hidden;
   align-content:center;justify-content:center;gap:7px;padding:10px}
-.cell{min-height:0;padding:5px 4px 4px}
-.cell .c-dmg{font-size:clamp(17px,3.4vh,26px)}
+.cell{min-height:0;padding:5px 4px 4px;overflow:hidden}
+.cell .c-dmg{font-size:clamp(16px,3.2vh,26px)}
 .cell .c-std{font-size:10px;margin-top:0}
 .cell .c-rem{font-size:clamp(11px,1.8vh,13px);margin-top:2px}
 .sub-row{margin:0 0 6px;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .sub-row::-webkit-scrollbar{display:none}
 .sub-row .mini{white-space:nowrap;flex-shrink:0}
-/* インサイト: 高さ制限つき内部スクロール */
-#insight{flex:0 0 auto;max-height:22vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  margin-bottom:6px;padding:8px 10px;min-height:0}
+/* インサイト: ドック上に浮くオーバーレイ（盤面を圧迫しない） */
+.cmd-dock{position:relative}
+#insight{position:absolute;bottom:calc(100% + 8px);left:10px;right:10px;z-index:22;
+  max-height:36vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:10px 12px;box-shadow:0 -8px 22px rgba(0,0,0,.3),0 3px 0 var(--thick);
+  outline:2px dashed var(--stitch);outline-offset:-6px}
+[data-theme=light] #insight{box-shadow:0 -8px 22px rgba(150,100,125,.28),0 3px 0 var(--thick)}
 #insight .hint{margin:1px 0;font-size:11px}
+.ins-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ins-head .ins-h{margin-bottom:0;flex:1}
+.ins-close{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--ai2);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.ins-close .svgi{width:12px;height:12px;stroke-width:2.6}
 /* コマンドドック: 不透明・横スクロール2段の帯 */
 #play-main .cmd-dock{position:static;bottom:auto;margin:0 -14px;margin-top:0;
   padding:8px 14px 9px;background:var(--ai2);border-top:1px solid var(--line)}
@@ -659,15 +669,14 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     <div id="p-hissatsu" class="hide"></div>
     </div><!-- /.p-sticky -->
 
-    <div id="cloth"></div>    <div class="sub-row">
+    <div id="cloth"></div>    <div class="sub-row" id="play-tools">
       <button class="mini" id="btn-undo"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6 4 10l4 4"/><path d="M4 10h9a6 6 0 1 1 0 12h-3"/></svg>1手戻す</button>
       <button class="mini" id="btn-ai"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="m18.8 15 .8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z"/></svg><span id="ai-label">AI推奨手</span></button>
       <button class="mini" id="btn-edit-state"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1Z"/><path d="m14.5 6.5 3 3"/></svg>状態編集</button>
       <button class="mini" id="btn-glow-fix"><svg class="svgi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c.6 3.6 2 6.4 4.4 8-2.4 1.6-3.8 4.4-4.4 8-.6-3.6-2-6.4-4.4-8C10 10.4 11.4 7.6 12 4Z"/></svg>光マス修正</button>
     </div>
-    <div id="insight"></div>
-
     <div class="cmd-dock">
+      <div id="insight" class="hide"></div>
       <div id="commands"></div>
       <div class="act-row">
         <button class="btn" id="btn-exec" disabled>実行</button>
@@ -716,13 +725,17 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   <div class="apph"><h1>設定</h1></div>
   <div class="sec">
     <h2>職人・道具</h2>
-    <div id="st-presets">
-      <button class="mini" data-v="306,5.6">光★3（会心4.6+Lv1.0）</button>
-      <button class="mini" data-v="311,5.3">奇跡★3（会心4.3+Lv1.0）</button>
-      <button class="mini" data-v="341,5.3">奇跡★3＋開幕+30</button>
+    <div class="ed-row">
+      <label class="fld">職人レベル<input id="st-lv2" type="number" min="1" max="80" inputmode="numeric"></label>
+      <label class="fld">できのよさ<select id="st-star">
+        <option value="3">★3</option><option value="2">★2</option>
+        <option value="1">★1</option><option value="0">★なし</option>
+      </select></label>
     </div>
-    <label class="fld">開始集中力（職人Lv＋針の合計値をゲーム画面で確認して入力）<input id="st-focus" type="number" inputmode="numeric"></label>
-    <label class="fld">基礎会心率 %（針＋できのよさ＋職人Lv補正）<input id="st-crit" type="number" step="0.1" inputmode="decimal"></label>
+    <label class="fld">さいほう針<select id="st-needle"></select></label>
+    <p class="hint" id="st-calc"></p>
+    <label class="fld">開始集中力（自動計算・手動上書き可）<input id="st-focus" type="number" inputmode="numeric"></label>
+    <label class="fld">基礎会心率 %（自動計算・手動上書き可）<input id="st-crit" type="number" step="0.1" inputmode="decimal"></label>
     <div class="ed-row">
       <label><input type="checkbox" id="st-sh"> 開幕ひっさつチャージ（光の針）</label>
     </div>
@@ -1697,9 +1710,43 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     },
   ];
 
+  // ---------- 職人データ ----------
+  // 裁縫のレベル別素集中力（Lv76-79は補完値・Lv80=207は実測）
+  const FOCUS_TABLE = [0,
+    50, 51, 54, 56, 58, 61, 62, 65, 68, 68,
+    71, 74, 74, 77, 79, 82, 82, 85, 88, 88,
+    91, 94, 94, 97, 100, 100, 103, 105, 108, 108,
+    111, 112, 112, 114, 118, 121, 122, 122, 124, 128,
+    131, 133, 136, 138, 138, 141, 141, 143, 146, 148,
+    151, 151, 153, 156, 158, 161, 161, 163, 166, 168,
+    170, 170, 172, 174, 176, 179, 181, 183, 185, 187,
+    188, 190, 192, 194, 196, 198, 200, 202, 204, 207,
+  ];
+  const NEEDLES = [
+    { id: 'hikari', name: '光のさいほう針', focus: 45, crit: 3.6, fx: 'hissatsu', fxText: '開幕 約1/10で必殺チャージ' },
+    { id: 'kiseki', name: '奇跡のさいほう針', focus: 50, crit: 3.3, fx: 'focus30', fxText: '開幕 約1/6で集中力+30' },
+    { id: 'cho', name: '超さいほう針', focus: 35, crit: 3.0 },
+    { id: 'plat', name: 'プラチナさいほう針', focus: 25, crit: 2.5 },
+    { id: 'gin', name: '銀のさいほう針', focus: 15, crit: 2.0 },
+    { id: 'tetsu', name: '鉄のさいほう針', focus: 10, crit: 1.5 },
+    { id: 'dou', name: '銅のさいほう針', focus: 0, crit: 1.0 },
+  ];
+  const STAR_CRIT = [0, 0.1, 0.2, 1.0]; // できのよさ★
+  function lvCrit(lv) { return (lv >= 10 ? 0.1 : 0) + (lv >= 20 ? 0.2 : 0) + (lv >= 30 ? 0.3 : 0); }
+  function calcFocus(lv, needleId) {
+    const base = FOCUS_TABLE[Math.min(80, Math.max(1, lv))] || 50;
+    const nd = NEEDLES.find(n => n.id === needleId);
+    return base + (nd ? nd.focus : 0);
+  }
+  function calcCrit(lv, needleId, star) {
+    const nd = NEEDLES.find(n => n.id === needleId);
+    return +((nd ? nd.crit : 0) + STAR_CRIT[Math.min(3, Math.max(0, star))] + lvCrit(lv)).toFixed(1);
+  }
+
   // ---------- 設定 ----------
   const DEFAULT_SETTINGS = {
-    focus: 306, baseCrit: 5.6, hissatsuChance: 2, startHissatsu: false,
+    lv: 80, needle: 'hikari', star: 3,
+    focus: 252, baseCrit: 5.2, hissatsuChance: 2, startHissatsu: false,
     aiDepth: 2, aiSamples: 24, aiTime: 1800, lvLimit: 0, fx: 'full',
     skillCosts: {},
   };
@@ -1839,6 +1886,18 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     st.lvLimit = settings.lvLimit > 0 ? settings.lvLimit : null;
     st.hissatsuChance = mode === 'sim' ? settings.hissatsuChance / 100 : 0;
     G = { st, mode, history: [], pendingSkill: null, pendingTargets: null, rng: E.makeRng(Date.now() & 0xffffffff), result: null };
+    // 針の開幕効果（シミュのみ抽選・実機サポートは実機準拠で入力）
+    if (mode === 'sim') {
+      const nd = NEEDLES.find(n => n.id === settings.needle);
+      if (nd && nd.fx === 'hissatsu' && !settings.startHissatsu && G.rng() < 0.1) {
+        st.hissatsuCharged = true;
+        setTimeout(() => toast('光の針：開幕ひっさつチャージ！'), 400);
+      }
+      if (nd && nd.fx === 'focus30' && G.rng() < 1 / 6) {
+        st.focus += 30; st.focusMax += 30;
+        setTimeout(() => toast('奇跡の針：開幕 集中力+30！'), 400);
+      }
+    }
     // ピンク布: turn1が4の倍数になることはないので初期抽選不要
     show('play');
     renderPlay();
@@ -1927,7 +1986,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     const rows = Math.max(...st.cells.map(c => c.r)) + 1;
     const cols = Math.max(...st.cells.map(c => c.c)) + 1;
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 132px))`;
-    grid.style.gridTemplateRows = `repeat(${rows}, minmax(58px, 132px))`;
+    grid.style.gridTemplateRows = `repeat(${rows}, minmax(72px, 132px))`;
     const map = {};
     st.cells.forEach((c, i) => (map[c.r + ',' + c.c] = i));
     const ph = E.clothPhase(st);
@@ -1991,6 +2050,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
         if (!placed) { toast('その位置には配置できません'); return; }
         G.pendingTargets = placed;
       }
+      G.insHide = false;
       renderGrid();
       renderInsight();
       $('#btn-exec').disabled = !G.pendingTargets;
@@ -2024,6 +2084,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   function isNoTarget(id) { return ['seishin', 'shift', 'hissatsu', 'midare'].includes(id); }
 
   function selectSkill(id) {
+    G.insHide = false;
     if (G.pendingSkill === id) { G.pendingSkill = null; G.pendingTargets = null; }
     else {
       G.pendingSkill = id;
@@ -2497,28 +2558,31 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   function renderInsight() {
     const st = G.st;
     const box = $('#insight');
-    if (G.pendingSkill && G.pendingTargets && (G.pendingTargets.length || G.pendingSkill === 'midare')) {
-      const dist = E.actionDistribution(st, { skill: G.pendingSkill, targets: G.pendingTargets });
-      if (!dist) { box.innerHTML = ''; return; }
-      if (dist.midare) { box.innerHTML = `<p class="hint">みだれぬい（消費${dist.cost}）：重複なしのランダム4マスに 2.0／1.0／1.0／0.5倍。マスを選べないため分布は省略します。</p>`; return; }
-      if (dist.random) { box.innerHTML = '<p class="hint">ぬいパワー「？」— 確定後に分布を表示します</p>'; return; }
-      const sk = skillDefs().find(s => s.id === G.pendingSkill);
-      box.innerHTML = `<div class="ins-h">結果分布 — ${sk.name}（${E.POWER_NAMES[dist.power]}・消費${dist.cost}）</div>` +
-        dist.perCell.map(p => {
-          const cd = st.cells[p.cell];
-          const rows = Object.entries(p.outcomes).sort((a, b) => +a[0] - +b[0]).map(([rem, pr]) => {
-            const r = +rem;
-            const cls = r === 0 ? 'z' : Math.abs(r) <= 4 ? 'n' : r < 0 ? 'o' : '';
-            return `<span class="dist ${cls}">${r === 0 ? '±0' : r > 0 ? '残' + r : '超' + (-r)}<i>${Math.round(pr * 100)}%</i></span>`;
-          }).join('');
-          return `<div class="ins-cell"><b>（${cd.r + 1},${cd.c + 1}）残${p.rem}</b>
-            <span class="zp ${p.zeroProb > 0 ? 'hot' : ''}">誤差0：${(p.zeroProb * 100).toFixed(1)}%</span>
-            <span class="cr">会心率：${p.critRate.toFixed(1)}%</span>
-            <div class="dists">${rows}</div></div>`;
-        }).join('');
-    } else {
-      box.innerHTML = '<p class="hint">特技→マスの順に選ぶと結果分布を表示。マス単体タップで逆引き。</p>';
-    }
+    const hasSel = G.pendingSkill && G.pendingTargets && (G.pendingTargets.length || G.pendingSkill === 'midare');
+    if (!hasSel || G.insHide) { box.classList.add('hide'); return; }
+    const dist = E.actionDistribution(st, { skill: G.pendingSkill, targets: G.pendingTargets });
+    const sk = skillDefs().find(s => s.id === G.pendingSkill);
+    let body;
+    if (!dist) { box.classList.add('hide'); return; }
+    if (dist.midare) body = `<p class="hint">重複なしのランダム4マスに 2.0／1.0／1.0／0.5倍で縫います（マスは選べません）。</p>`;
+    else if (dist.random) body = '<p class="hint">ぬいパワー「？」— 確定後に分布を表示します</p>';
+    else body = dist.perCell.map(p => {
+      const cd = st.cells[p.cell];
+      const rows = Object.entries(p.outcomes).sort((a, b) => +a[0] - +b[0]).map(([rem, pr]) => {
+        const r = +rem;
+        const cls = r === 0 ? 'z' : Math.abs(r) <= 4 ? 'n' : r < 0 ? 'o' : '';
+        return `<span class="dist ${cls}">${r === 0 ? '±0' : r > 0 ? '残' + r : '超' + (-r)}<i>${Math.round(pr * 100)}%</i></span>`;
+      }).join('');
+      return `<div class="ins-cell"><b>（${cd.r + 1},${cd.c + 1}）残${p.rem}</b>
+        <span class="zp ${p.zeroProb > 0 ? 'hot' : ''}">誤差0：${(p.zeroProb * 100).toFixed(1)}%</span>
+        <span class="cr">会心率：${p.critRate.toFixed(1)}%</span>
+        <div class="dists">${rows}</div></div>`;
+    }).join('');
+    const title = dist.power != null ? `結果分布 — ${sk.name}（${E.POWER_NAMES[dist.power]}・消費${dist.cost}）` : `${sk.name}${dist.cost != null ? `（消費${dist.cost}）` : ''}`;
+    box.innerHTML = `<div class="ins-head"><div class="ins-h">${title}</div>
+      <button class="ins-close" aria-label="分布をとじる"><svg class="svgi" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>` + body;
+    box.classList.remove('hide');
+    box.querySelector('.ins-close').onclick = () => { G.insHide = true; box.classList.add('hide'); };
   }
 
   function showCellLookup(rem, cellIdx) {
@@ -2764,9 +2828,24 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   // =========================================================
   // 設定
   // =========================================================
+  function updateCraftCalc(apply) {
+    const lv = Math.min(80, Math.max(1, +$('#st-lv2').value || 80));
+    const nd = $('#st-needle').value;
+    const star = +$('#st-star').value;
+    const f = calcFocus(lv, nd);
+    const c = calcCrit(lv, nd, star);
+    const ndDef = NEEDLES.find(n => n.id === nd);
+    $('#st-calc').innerHTML = `自動計算：開始集中力 <b>${f}</b>（素${FOCUS_TABLE[lv]}＋針${ndDef.focus}）／ 基礎会心率 <b>${c}%</b>（針${ndDef.crit}＋★${STAR_CRIT[star]}＋Lv${lvCrit(lv)}）${ndDef.fxText ? `<br><small>${ndDef.fxText}（シミュで自動抽選）</small>` : ''}`;
+    if (apply) { $('#st-focus').value = f; $('#st-crit').value = c; }
+  }
   function renderSettings() {
+    $('#st-lv2').value = settings.lv || 80;
+    $('#st-needle').innerHTML = NEEDLES.map(n => `<option value="${n.id}" ${n.id === settings.needle ? 'selected' : ''}>${n.name}（集中+${n.focus}）</option>`).join('');
+    $('#st-star').value = settings.star != null ? settings.star : 3;
+    ['#st-lv2', '#st-needle', '#st-star'].forEach(sel => { $(sel).onchange = () => updateCraftCalc(true); });
     $('#st-focus').value = settings.focus;
     $('#st-crit').value = settings.baseCrit;
+    updateCraftCalc(false);
     $('#st-hc').value = settings.hissatsuChance;
     $('#st-sh').checked = settings.startHissatsu;
     $('#st-depth').value = settings.aiDepth;
@@ -2785,6 +2864,9 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     });
   }
   function saveSettings() {
+    settings.lv = Math.min(80, Math.max(1, +$('#st-lv2').value || 80));
+    settings.needle = $('#st-needle').value;
+    settings.star = +$('#st-star').value;
     settings.focus = Math.max(1, +$('#st-focus').value || 100);
     settings.baseCrit = Math.max(0, +$('#st-crit').value || 0);
     settings.hissatsuChance = Math.max(0, +$('#st-hc').value || 0);
@@ -2902,10 +2984,6 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   $('#btn-import').onclick = importJson;
   $('#btn-reset-presets').onclick = () => confirmModal('プリセット再読込', 'プリセット商材を最新データに更新します（自作の商材は保持されます）。よろしいですか？', () => { PRESET_ITEMS.forEach(p => { const ex = items.findIndex(i => i.id === p.id); if (ex >= 0) items[ex] = JSON.parse(JSON.stringify(p)); else items.push(JSON.parse(JSON.stringify(p))); }); saveItems(); renderData(); toast('プリセットを更新しました'); });
   $('#btn-save-settings').onclick = saveSettings;
-  $$('#st-presets button').forEach(b => b.onclick = () => {
-    const [f, c] = b.dataset.v.split(',');
-    $('#st-focus').value = f; $('#st-crit').value = c;
-  });
 
   // ---------- テーマ（ダーク／ライト・円形リビール切替） ----------
   let theme = store.get('theme', 'dark');
