@@ -301,7 +301,8 @@ h1,h2{font-weight:800;letter-spacing:.04em}
   animation:sheetUp .22s cubic-bezier(.3,.9,.3,1)}
 @keyframes sheetUp{from{transform:translateY(28px);opacity:.4}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.modal-in{animation:none}}
-.modal-in::before{content:"";align-self:center;width:38px;height:4px;border-radius:2px;background:var(--line);margin-top:8px}
+.modal-in::before{content:"";align-self:center;width:46px;height:5px;border-radius:3px;background:var(--line);margin-top:10px;margin-bottom:2px}
+.modal-in{touch-action:pan-y}
 .sheet-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--tx-dim);font-size:12px;margin-bottom:10px}
 .sh-grid{display:grid;gap:5px;background:repeating-linear-gradient(45deg,rgba(160,110,135,.12) 0 10px,rgba(160,110,135,.05) 10px 20px);padding:8px;border-radius:10px;border:1px solid var(--line);margin-bottom:10px}
 .sh-cell{background:var(--linen);color:var(--ink);border-radius:5px;text-align:center;
@@ -2963,7 +2964,58 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     modalOk = onOk;
   }
   $('#modal').addEventListener('click', (e) => { if (e.target === $('#modal')) closeModal(); });
-  function closeModal() { $('#modal').classList.add('hide'); modalOk = null; }
+  function closeModal() {
+    const sheet = $('#modal .modal-in');
+    sheet.style.transition = ''; sheet.style.transform = '';
+    $('#modal').classList.add('hide'); modalOk = null;
+  }
+  // ---------- シートのスワイプで閉じる ----------
+  (function enableSheetSwipe() {
+    const modal = $('#modal');
+    const sheet = $('#modal .modal-in');
+    const body = $('#modal-body');
+    let startY = 0, startX = 0, curY = 0, startT = 0, dragging = false, fromScrollable = false;
+    sheet.addEventListener('touchstart', (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t || modal.classList.contains('hide')) return;
+      startY = curY = t.clientY; startX = t.clientX; startT = Date.now();
+      dragging = false;
+      fromScrollable = body.contains(e.target) && body.scrollHeight > body.clientHeight + 2;
+    }, { passive: true });
+    sheet.addEventListener('touchmove', (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      const dy = t.clientY - startY;
+      const dx = t.clientX - startX;
+      if (!dragging) {
+        // 下方向優位 + 本文が最上部（または非スクロール領域）のときだけドラッグ開始
+        if (dy > 10 && Math.abs(dy) > Math.abs(dx) * 1.2 && (!fromScrollable || body.scrollTop <= 0)) {
+          dragging = true;
+          sheet.style.transition = 'none';
+        } else return;
+      }
+      curY = t.clientY;
+      const off = Math.max(0, curY - startY);
+      sheet.style.transform = `translateY(${off}px)`;
+      if (off > 0 && e.cancelable) e.preventDefault();
+    }, { passive: false });
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      const dy = curY - startY;
+      const v = dy / Math.max(1, Date.now() - startT); // px/ms
+      sheet.style.transition = 'transform .22s cubic-bezier(.3,.8,.4,1)';
+      if (dy > 110 || (v > 0.45 && dy > 60)) {
+        sheet.style.transform = 'translateY(108%)';
+        setTimeout(closeModal, 200);
+      } else {
+        sheet.style.transform = '';
+        setTimeout(() => { sheet.style.transition = ''; }, 240);
+      }
+    }
+    sheet.addEventListener('touchend', endDrag);
+    sheet.addEventListener('touchcancel', endDrag);
+  })();
   $('#modal-ok').onclick = () => { if (!modalOk || modalOk() !== false) closeModal(); };
   $('#modal-cancel').onclick = closeModal;
 
