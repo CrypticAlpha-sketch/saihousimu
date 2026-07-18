@@ -627,6 +627,15 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
 .stats-grid b{display:block;font-family:var(--num);font-size:19px;color:var(--gold)}
 .stats-grid span{font-size:10px;color:var(--tx-dim)}
 
+
+/* 開始シートの職人プロフィール行 */
+.profile-row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  background:var(--ai2);border:1px solid var(--line);border-radius:12px;
+  padding:9px 12px;margin-bottom:10px;font-size:12px;color:var(--tx)}
+.profile-row .pr-nums{margin-left:auto;font-family:var(--num);font-weight:700;color:var(--gold)}
+.profile-row .chev{color:var(--tx-dim)}
+.profile-row .chev .svgi{width:13px;height:13px}
+
 </style>
 </head>
 <body>
@@ -1859,6 +1868,11 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       <div class="sh-grid" style="grid-template-columns:repeat(${cols},1fr)">${grid}</div>
       <div class="sh-pat">${pat}</div>
       ${it.note ? `<p class="hint">${esc(it.note)}</p>` : ''}
+      <button class="profile-row" id="sheet-profile">
+        <span>職人 Lv${settings.lv || '—'}・${(NEEDLES.find(n => n.id === settings.needle) || {}).name || '針未設定'}${settings.star != null ? '★' + settings.star : ''}</span>
+        <span class="pr-nums">集中 ${settings.focus}／会心 ${settings.baseCrit}%</span>
+        <span class="chev">${CHEV_SVG}</span>
+      </button>
       <div class="sheet-start">
         <button class="btn big" id="sheet-sim">シミュレーション開始</button>
         <button class="btn ghost big" id="sheet-sup">実機サポート開始</button>
@@ -1866,6 +1880,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     openModal(esc(it.name), body, null, 'none');
     $('#sheet-sim').onclick = () => { closeModal(); startPlay('sim'); };
     $('#sheet-sup').onclick = () => { closeModal(); startPlay('support'); };
+    $('#sheet-profile').onclick = () => { closeModal(); show('settings'); $$('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.scr === 'settings')); toast('「職人・道具」でレベルと針を設定できます'); };
   }
   let selectedItem = 0;
   function clothName(c) { return { none: '布特性なし', regen: '再生布', rainbow: '虹布', pink: 'ピンク布' }[c] || c; }
