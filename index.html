@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="さいほう工房">
-<meta name="theme-color" content="#232030">
+<meta name="theme-color" content="#faf3f5">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-180.png">
 <style>
@@ -922,6 +922,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       focusMax: opts.focus != null ? opts.focus : 100,
       baseCrit: opts.baseCrit != null ? opts.baseCrit : 4.6 + 1.0, // 光★3 + Lv補正 目安(%)
       seishin: 0,                 // 精神統一 残ターン
+      patternDelay: 0,            // 精神統一で凍結したパターン進行数
       hissatsuCharged: !!opts.hissatsuCharged,
       hissatsuActive: false,
       shiftPending: false,        // 次パワーがシフト抽選待ち
@@ -947,7 +948,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   function powerAt(st, turn, rng, resolve) {
     if (st.forcedNextTurn === turn && st.forcedNext != null) return st.forcedNext;
     if (st.resolvedRandom[turn] != null) return st.resolvedRandom[turn];
-    let p = patternPowerAt(st.item, turn);
+    let p = patternPowerAt(st.item, turn - (st.patternDelay || 0));
     if (p === POWER.RANDOM) {
       if (resolve && rng) {
         const v = Math.floor(rng() * 5);
@@ -976,21 +977,31 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     if (st.seishin > 1 && st.heldPower != null) return st.heldPower;
     if (st.forcedNextTurn === st.turn + 1 && st.forcedNext != null) return st.forcedNext;
     if (st.resolvedRandom[st.turn + 1] != null) return st.resolvedRandom[st.turn + 1];
-    return patternPowerAt(st.item, st.turn + 1);
+    const futureDelay = (st.patternDelay || 0) + (st.seishin > 0 && st.heldPower != null ? 1 : 0);
+    return patternPowerAt(st.item, st.turn + 1 - futureDelay);
   }
 
   // ---- 布特性 ----
-  // 発動ターン: 5,9,13,…（開始から4ターン経過ごと。実機観測により4,8,12…から+1修正）
-  // 虹布: 5,13,21…=消費半減 / 9,17,25…=会心アップ(消費1.5倍)
-  function clothTurnActive(t) { return t > 1 && t % 4 === 1; }
-  function nextClothTurn(t) { let x = Math.max(2, t); while (!clothTurnActive(x)) x++; return x; }
+  // 統一モデル: 4ターン終了時(4,8,12…)が発動起点（実機観測）
+  //  再生布  : 4nターン終了時に回復（4手行動ごと）
+  //  虹布    : 次の手番=4n+1ターンに効果（5,13,21…=消費半減 / 9,17,25…=会心アップ）
+  //  ピンク布: 次の手番=4n+1ターンに発光
+  function clothTurnActive(t, cloth) {
+    if (cloth === 'regen') return t >= 4 && t % 4 === 0;
+    return t > 1 && t % 4 === 1;
+  }
+  function nextClothTurn(t, cloth) {
+    let x = Math.max(cloth === 'regen' ? 4 : 2, t);
+    while (!clothTurnActive(x, cloth)) x++;
+    return x;
+  }
   function clothPhase(st) {
     const t = st.turn;
     const cloth = st.item.cloth;
-    if (!clothTurnActive(t) || cloth === 'none' || !cloth) return null;
+    if (cloth === 'none' || !cloth || !clothTurnActive(t, cloth)) return null;
+    if (cloth === 'regen') return 'regenTurn'; // このターン終了時に回復
     if (cloth === 'rainbow') return (t % 8 === 5) ? 'rainbowHalf' : 'rainbowCrit';
     if (cloth === 'pink') return 'pinkGlow';
-    if (cloth === 'regen') return 'regenTurn'; // ターン終了時に回復
     return null;
   }
 
@@ -1077,7 +1088,8 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
         regen = { cell: best, heal: actual };
       }
     }
-    // ターン進行
+    // ターン進行（精神統一の保持ターンはパターン進行を凍結）
+    if (st.seishin > 0 && st.seishin < 4 && st.heldPower != null) st.patternDelay = (st.patternDelay || 0) + 1;
     st.turn += 1;
     if (st.seishin > 0) st.seishin -= 1;
     if (st.seishin === 0) st.heldPower = null;
@@ -1380,7 +1392,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
       item: st.item,
       cells: st.cells.map(c => ({ r: c.r, c: c.c, std: c.std, dmg: c.dmg, shitsuke: c.shitsuke })),
       turn: st.turn, focus: st.focus, focusMax: st.focusMax,
-      baseCrit: st.baseCrit, seishin: st.seishin, heldPower: st.heldPower,
+      baseCrit: st.baseCrit, seishin: st.seishin, heldPower: st.heldPower, patternDelay: st.patternDelay || 0,
       hissatsuCharged: st.hissatsuCharged, hissatsuActive: st.hissatsuActive,
       forcedNext: st.forcedNext, forcedNextTurn: st.forcedNextTurn,
       resolvedRandom: Object.assign({}, st.resolvedRandom),
@@ -1975,7 +1987,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
     else {
       const c = st.item.cloth;
       if (c && c !== 'none') {
-        const rem = E.nextClothTurn(st.turn) - st.turn;
+        const rem = E.nextClothTurn(st.turn, c) - st.turn;
         fx.textContent = `${clothName(c)}（次の効果まで ${rem} ターン）`;
       } else fx.textContent = '布特性なし';
     }
@@ -3053,7 +3065,7 @@ input[type=checkbox]{width:20px;height:20px;flex:0 0 auto;margin:0 2px 0 0;
   $('#btn-save-settings').onclick = saveSettings;
 
   // ---------- テーマ（ダーク／ライト・円形リビール切替） ----------
-  let theme = store.get('theme', 'dark');
+  let theme = store.get('theme', 'light');
   const themeBtn = $('#theme-toggle');
   function applyTheme(t) {
     theme = t;
